@@ -39,12 +39,12 @@ export const FILE_STATUS_COLORS: Record<string, string> = {
 
 // Commit graph settings
 export const GRAPH_CONFIG = {
-  NODE_RADIUS: 6,
-  NODE_SPACING_X: 20,
+  NODE_RADIUS: 5,
+  NODE_SPACING_X: 24,  // Horizontal space between branch columns
   NODE_SPACING_Y: 40,
   LINE_WIDTH: 2,
-  COMMIT_HEIGHT: 50,
-  SIDEBAR_WIDTH: 150,
+  COMMIT_HEIGHT: 48,   // Vertical space between commits
+  SIDEBAR_WIDTH: 40,   // Left margin for the graph
 } as const;
 
 // Application settings

@@ -126,19 +126,9 @@ describe('GitService', () => {
 
   describe('getLog', () => {
     it('should return parsed commits', async () => {
-      mockGit.log.mockResolvedValue({
-        all: [
-          {
-            hash: 'abc123def456',
-            message: 'Test commit',
-            body: '',
-            author_name: 'Test User',
-            author_email: 'test@example.com',
-            date: '2024-01-01T12:00:00Z',
-            refs: 'HEAD -> main',
-          },
-        ],
-      });
+      mockGit.raw.mockResolvedValue(
+        'abc123def456|abc123d|Test commit|Test User|test@example.com|2024-01-01T12:00:00Z|parent123|HEAD -> main'
+      );
 
       const result = await gitService.getLog();
 
@@ -150,12 +140,22 @@ describe('GitService', () => {
     });
 
     it('should respect maxCount option', async () => {
-      mockGit.log.mockResolvedValue({ all: [] });
+      mockGit.raw.mockResolvedValue('');
 
       await gitService.getLog({ maxCount: 50 });
 
-      expect(mockGit.log).toHaveBeenCalledWith(
+      expect(mockGit.raw).toHaveBeenCalledWith(
         expect.arrayContaining(['--max-count=50'])
+      );
+    });
+
+    it('should include all branches', async () => {
+      mockGit.raw.mockResolvedValue('');
+
+      await gitService.getLog();
+
+      expect(mockGit.raw).toHaveBeenCalledWith(
+        expect.arrayContaining(['--all'])
       );
     });
   });

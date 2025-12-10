@@ -8,6 +8,7 @@ interface GraphNode {
   y: number;
   color: string;
   column: number;
+  branchName?: string;
 }
 
 interface CommitNodeProps {
@@ -18,6 +19,7 @@ interface CommitNodeProps {
 
 export function CommitNode({ node, isSelected, onSelect }: CommitNodeProps) {
   const { commit, x, y, color } = node;
+  const isMergeCommit = commit.parents.length > 1;
   
   // Format date
   const formatDate = (dateStr: string) => {
@@ -35,10 +37,34 @@ export function CommitNode({ node, isSelected, onSelect }: CommitNodeProps) {
   };
 
   // Truncate message
-  const truncateMessage = (msg: string, maxLen: number = 60) => {
+  const truncateMessage = (msg: string, maxLen: number = 50) => {
     if (msg.length <= maxLen) return msg;
     return msg.substring(0, maxLen) + '...';
   };
+
+  // Parse refs to get display-friendly names
+  const parseRefs = (refs: string[]) => {
+    return refs.map((ref) => {
+      const isHead = ref.includes('HEAD');
+      const isRemote = ref.includes('origin/');
+      const isTag = ref.startsWith('tag:') || ref.includes('refs/tags/');
+      
+      const displayName = ref
+        .replace('HEAD -> ', '')
+        .replace('refs/heads/', '')
+        .replace('refs/tags/', '')
+        .replace('refs/remotes/', '')
+        .replace('tag: ', '');
+
+      return { displayName, isHead, isRemote, isTag, original: ref };
+    });
+  };
+
+  const parsedRefs = parseRefs(commit.refs);
+  const nodeRadius = isMergeCommit ? GRAPH_CONFIG.NODE_RADIUS + 2 : GRAPH_CONFIG.NODE_RADIUS;
+
+  // Calculate total width needed for refs
+  let refOffset = 0;
 
   return (
     <g
@@ -59,59 +85,102 @@ export function CommitNode({ node, isSelected, onSelect }: CommitNodeProps) {
         />
       )}
 
-      {/* Node circle */}
-      <circle
-        cx={x}
-        cy={y}
-        r={GRAPH_CONFIG.NODE_RADIUS}
-        fill={color}
-        stroke={isSelected ? '#fff' : 'transparent'}
-        strokeWidth={2}
-        className="transition-all duration-150"
-      />
+      {/* Node circle - different style for merge commits */}
+      {isMergeCommit ? (
+        // Merge commit: diamond/double circle
+        <g>
+          <circle
+            cx={x}
+            cy={y}
+            r={nodeRadius}
+            fill="none"
+            stroke={color}
+            strokeWidth={2}
+          />
+          <circle
+            cx={x}
+            cy={y}
+            r={nodeRadius - 3}
+            fill={color}
+          />
+        </g>
+      ) : (
+        // Regular commit: filled circle
+        <circle
+          cx={x}
+          cy={y}
+          r={nodeRadius}
+          fill={color}
+          stroke={isSelected ? '#fff' : 'transparent'}
+          strokeWidth={2}
+          className="transition-all duration-150"
+        />
+      )}
 
       {/* Branch/tag refs */}
-      {commit.refs.length > 0 && (
+      {parsedRefs.length > 0 && (
         <g>
-          {commit.refs.slice(0, 2).map((ref, index) => {
-            const isHead = ref === 'HEAD' || ref.includes('HEAD');
-            const isBranch = ref.startsWith('refs/heads/') || !ref.includes('/');
-            const isTag = ref.startsWith('refs/tags/') || ref.startsWith('tag:');
-            
-            const displayRef = ref
-              .replace('refs/heads/', '')
-              .replace('refs/tags/', '')
-              .replace('HEAD -> ', '')
-              .replace('tag: ', '');
+          {parsedRefs.slice(0, 3).map((ref, index) => {
+            const bgColor = ref.isHead ? '#00d9ff' : ref.isTag ? '#fbbf24' : ref.isRemote ? '#a855f7' : color;
+            const textWidth = Math.min(ref.displayName.length * 6.5 + 12, 100);
+            const xPos = x + 16 + refOffset;
+            refOffset += textWidth + 4;
 
             return (
-              <g key={ref} transform={`translate(${x + 20 + index * 80}, ${y - 8})`}>
+              <g key={ref.original} transform={`translate(${xPos}, ${y - 8})`}>
                 <rect
                   x={0}
                   y={0}
-                  width={displayRef.length * 7 + 12}
+                  width={textWidth}
                   height={16}
                   rx={3}
-                  fill={isHead ? '#00d9ff' : isTag ? '#fbbf24' : color}
+                  fill={bgColor}
                   opacity={0.2}
                 />
+                {ref.isHead && (
+                  <rect
+                    x={0}
+                    y={0}
+                    width={textWidth}
+                    height={16}
+                    rx={3}
+                    fill="none"
+                    stroke={bgColor}
+                    strokeWidth={1}
+                    opacity={0.5}
+                  />
+                )}
                 <text
                   x={6}
                   y={12}
                   fontSize={10}
                   fontFamily="JetBrains Mono, monospace"
-                  fill={isHead ? '#00d9ff' : isTag ? '#fbbf24' : color}
+                  fill={bgColor}
                 >
-                  {displayRef}
+                  {ref.displayName.length > 14 
+                    ? ref.displayName.substring(0, 12) + '..' 
+                    : ref.displayName}
                 </text>
               </g>
             );
           })}
+          {parsedRefs.length > 3 && (
+            <text
+              x={x + 16 + refOffset}
+              y={y}
+              fontSize={10}
+              fontFamily="JetBrains Mono, monospace"
+              fill="#71717a"
+              dominantBaseline="middle"
+            >
+              +{parsedRefs.length - 3}
+            </text>
+          )}
         </g>
       )}
 
       {/* Commit info */}
-      <g transform={`translate(${x + 100 + (commit.refs.length > 0 ? 80 : 0)}, ${y})`}>
+      <g transform={`translate(${x + 16 + Math.max(refOffset, 0) + (parsedRefs.length > 0 ? 8 : 0)}, ${y})`}>
         {/* Message */}
         <text
           x={0}
@@ -124,31 +193,26 @@ export function CommitNode({ node, isSelected, onSelect }: CommitNodeProps) {
           {truncateMessage(commit.message)}
         </text>
 
-        {/* Hash */}
+        {/* Hash and author info on second line */}
         <text
           x={0}
-          y={18}
+          y={16}
           fontSize={11}
           fontFamily="JetBrains Mono, monospace"
           fill="#71717a"
           dominantBaseline="middle"
         >
           {commit.hashShort}
-        </text>
-
-        {/* Author and date */}
-        <text
-          x={60}
-          y={18}
-          fontSize={11}
-          fontFamily="DM Sans, sans-serif"
-          fill="#71717a"
-          dominantBaseline="middle"
-        >
-          {commit.author.name} • {formatDate(commit.author.date)}
+          <tspan fontFamily="DM Sans, sans-serif" dx={8}>
+            {commit.author.name} • {formatDate(commit.author.date)}
+          </tspan>
+          {isMergeCommit && (
+            <tspan fill="#a855f7" dx={8}>
+              merge
+            </tspan>
+          )}
         </text>
       </g>
     </g>
   );
 }
-

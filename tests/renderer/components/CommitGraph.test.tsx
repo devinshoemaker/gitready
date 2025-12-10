@@ -103,7 +103,8 @@ describe('CommitGraph', () => {
 
     render(<CommitGraph />);
 
-    expect(screen.getByText('main')).toBeInTheDocument();
+    // Branch name appears in both legend and commit node
+    expect(screen.getAllByText('main').length).toBeGreaterThan(0);
   });
 
   it('should show loading indicator when loading more commits', () => {

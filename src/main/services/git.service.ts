@@ -15,7 +15,6 @@ import type {
   GitFileHistoryEntry,
   GitMergeResult,
   RepositoryInfo,
-  GitRemote,
 } from '../../shared/types/git.types';
 import type {
   GitLogOptions,
@@ -96,28 +95,68 @@ export class GitService {
   }
 
   async getLog(options?: GitLogOptions): Promise<GitCommit[]> {
-    const logOptions: string[] = [
-      `--max-count=${options?.maxCount || 100}`,
-      '--format=%H|%h|%s|%b|%an|%ae|%ad|%cn|%ce|%cd|%P|%D',
+    const maxCount = options?.maxCount || 100;
+    const skip = options?.skip || 0;
+    const filePath = options?.file;
+
+    // Use raw git command to get all branches with proper formatting
+    const args = [
+      'log',
+      '--all',  // Include all branches (local and remote)
+      '--topo-order', // Topological order for proper branch visualization
+      `--max-count=${maxCount}`,
+      '--format=%H|%h|%s|%an|%ae|%ad|%P|%D',
       '--date=iso',
     ];
 
-    if (options?.skip) {
-      logOptions.push(`--skip=${options.skip}`);
+    if (skip > 0) {
+      args.push(`--skip=${skip}`);
     }
 
-    if (options?.from && options?.to) {
-      logOptions.push(`${options.from}..${options.to}`);
+    if (filePath) {
+      args.push('--', filePath);
     }
 
-    if (options?.file) {
-      logOptions.push('--', options.file);
+    try {
+      const result = await this.git.raw(args);
+      const lines = result.trim().split('\n').filter(Boolean);
+
+      return lines.map((line) => {
+        const parts = line.split('|');
+        const hash = parts[0];
+        const hashShort = parts[1];
+        const message = parts[2];
+        const authorName = parts[3];
+        const authorEmail = parts[4];
+        const date = parts[5];
+        const parents = parts[6] ? parts[6].split(' ').filter(Boolean) : [];
+        const refs = parts[7] ? parts[7].split(', ').filter(Boolean) : [];
+
+        return {
+          hash,
+          hashShort,
+          message,
+          body: '',
+          author: {
+            name: authorName,
+            email: authorEmail,
+            date,
+          },
+          committer: {
+            name: authorName,
+            email: authorEmail,
+            date,
+          },
+          parents,
+          refs,
+        };
+      });
+    } catch (error) {
+      console.error('Error fetching log:', error);
+      return [];
     }
-
-    const log: LogResult = await this.git.log(logOptions);
-
-    return log.all.map((commit) => this.parseCommit(commit));
   }
+
 
   private parseCommit(commit: LogResult['all'][0]): GitCommit {
     const refs = commit.refs ? commit.refs.split(', ').filter(Boolean) : [];
@@ -152,7 +191,7 @@ export class GitService {
       name,
       current: data.current,
       commit: data.commit,
-      tracking: data.linkedWorkTree || undefined,
+      tracking: (data as { label?: string }).label || undefined,
       isRemote: false,
     }));
 

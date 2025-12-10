@@ -1,4 +1,3 @@
-import React from 'react';
 import { GRAPH_CONFIG } from '../../../shared/constants';
 import type { GitCommit } from '../../../shared/types/git.types';
 
@@ -8,6 +7,7 @@ interface GraphNode {
   y: number;
   color: string;
   column: number;
+  branchName?: string;
 }
 
 interface BranchLineProps {
@@ -16,73 +16,122 @@ interface BranchLineProps {
   allNodes: GraphNode[];
 }
 
-export function BranchLine({ node, prevNode, allNodes }: BranchLineProps) {
-  const { x, y, color, commit } = node;
+export function BranchLine({ node, allNodes }: BranchLineProps) {
+  const { commit, x, y, color, column } = node;
+  const nodeRadius = GRAPH_CONFIG.NODE_RADIUS;
 
-  // Find parent nodes
+  // Find parent nodes in the graph
   const parentNodes = commit.parents
     .map((parentHash) => allNodes.find((n) => n.commit.hash === parentHash))
-    .filter(Boolean) as GraphNode[];
+    .filter((n): n is GraphNode => n !== undefined);
 
-  return (
-    <g>
-      {/* Line to previous node in same column */}
-      {prevNode && prevNode.column === node.column && (
+  // If no parents found in current view, draw line to bottom
+  if (parentNodes.length === 0 && commit.parents.length > 0) {
+    // Draw a line going down indicating more history
+    const lastNode = allNodes[allNodes.length - 1];
+    if (node === lastNode) {
+      return (
         <line
-          x1={prevNode.x}
-          y1={prevNode.y + GRAPH_CONFIG.NODE_RADIUS}
+          x1={x}
+          y1={y + nodeRadius}
           x2={x}
-          y2={y - GRAPH_CONFIG.NODE_RADIUS}
+          y2={y + GRAPH_CONFIG.COMMIT_HEIGHT}
           stroke={color}
           strokeWidth={GRAPH_CONFIG.LINE_WIDTH}
           strokeLinecap="round"
+          strokeDasharray="4 4"
+          opacity={0.5}
         />
-      )}
+      );
+    }
+  }
 
-      {/* Lines to parent commits (merge lines) */}
+  return (
+    <g>
       {parentNodes.map((parentNode, index) => {
-        if (!parentNode || (prevNode && parentNode.commit.hash === prevNode.commit.hash)) {
-          return null;
-        }
-
-        const isSameColumn = parentNode.column === node.column;
+        const parentX = parentNode.x;
+        const parentY = parentNode.y;
+        const parentColor = parentNode.color;
+        
+        const isSameColumn = parentNode.column === column;
+        const isFirstParent = index === 0;
+        
+        // Determine the color to use
+        // For first parent (direct line), use node's color
+        // For second parent (merge), use the parent's color
+        const lineColor = isFirstParent ? color : parentColor;
         
         if (isSameColumn) {
-          // Straight line
+          // Straight vertical line
           return (
             <line
               key={`parent-${parentNode.commit.hash}`}
               x1={x}
-              y1={y + GRAPH_CONFIG.NODE_RADIUS}
-              x2={parentNode.x}
-              y2={parentNode.y - GRAPH_CONFIG.NODE_RADIUS}
-              stroke={color}
+              y1={y + nodeRadius}
+              x2={parentX}
+              y2={parentY - nodeRadius}
+              stroke={lineColor}
               strokeWidth={GRAPH_CONFIG.LINE_WIDTH}
               strokeLinecap="round"
             />
           );
         } else {
-          // Curved line for merges
-          const midY = (y + parentNode.y) / 2;
-          const path = `
-            M ${x} ${y + GRAPH_CONFIG.NODE_RADIUS}
-            C ${x} ${midY}, ${parentNode.x} ${midY}, ${parentNode.x} ${parentNode.y - GRAPH_CONFIG.NODE_RADIUS}
-          `;
+          // Curved line for merges or branch forks
+          const startY = y + nodeRadius;
+          const endY = parentY - nodeRadius;
+          const midY = (startY + endY) / 2;
+          
+          // Determine if this is a fork (going right) or merge (going left)
+          const isFork = parentNode.column > column;
+          
+          // Create a smooth bezier curve
+          const controlOffset = Math.abs(parentX - x) * 0.5;
+          
+          let path: string;
+          if (isFork) {
+            // Fork: starts at node, curves right to parent
+            path = `
+              M ${x} ${startY}
+              L ${x} ${midY - 10}
+              C ${x} ${midY + 10}, ${parentX} ${midY - 10}, ${parentX} ${midY + 10}
+              L ${parentX} ${endY}
+            `;
+          } else {
+            // Merge: starts at node, curves left to parent  
+            path = `
+              M ${x} ${startY}
+              C ${x} ${startY + controlOffset}, ${parentX} ${endY - controlOffset}, ${parentX} ${endY}
+            `;
+          }
 
           return (
             <path
               key={`parent-${parentNode.commit.hash}`}
               d={path}
-              stroke={index === 0 ? color : parentNode.color}
+              stroke={lineColor}
               strokeWidth={GRAPH_CONFIG.LINE_WIDTH}
               fill="none"
               strokeLinecap="round"
-              opacity={0.7}
+              opacity={isFirstParent ? 1 : 0.7}
             />
           );
         }
       })}
+      
+      {/* Draw vertical line segment if this commit is not at the top and has no child in view */}
+      {allNodes.length > 0 && node === allNodes[0] && (
+        <line
+          x1={x}
+          y1={0}
+          x2={x}
+          y2={y - nodeRadius}
+          stroke={color}
+          strokeWidth={GRAPH_CONFIG.LINE_WIDTH}
+          strokeLinecap="round"
+          strokeDasharray="4 4"
+          opacity={0.3}
+        />
+      )}
     </g>
   );
 }
-
