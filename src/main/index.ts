@@ -1,13 +1,8 @@
 import { app, BrowserWindow, ipcMain, dialog } from 'electron';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import * as path from 'path';
 import { GitService } from './services/git.service';
 import { WatcherService } from './services/watcher.service';
 import { IPC_CHANNELS } from '../shared/types/ipc.types';
-
-// ESM equivalent of __dirname
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 import type {
   GitLogOptions,
   GitSearchOptions,
@@ -31,7 +26,7 @@ function createWindow() {
     backgroundColor: '#1a1a2e',
     titleBarStyle: 'hiddenInset',
     webPreferences: {
-      preload: path.join(__dirname, '../preload/preload.js'),
+      preload: path.join(__dirname, '../preload/preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
