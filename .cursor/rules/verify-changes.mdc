@@ -1,0 +1,87 @@
+---
+description: Write unit tests and verify all code changes by running build, linter, and tests
+globs:
+  - "**/*.ts"
+  - "**/*.tsx"
+alwaysApply: true
+---
+
+# Code Change Verification
+
+After making any code changes to TypeScript or React files, you MUST follow these steps in order:
+
+## 1. Write Unit Tests
+
+Before verifying your changes, determine if unit tests are needed and write them:
+
+**Tests ARE needed when:**
+- Adding new functions, methods, or utilities
+- Adding new React components
+- Adding new store actions or state logic
+- Modifying existing logic that has behavioral changes
+- Fixing bugs (write a test that reproduces the bug first)
+
+**Tests are NOT needed when:**
+- Making purely cosmetic/styling changes
+- Updating comments or documentation
+- Renaming without behavior changes
+- The change is already covered by existing tests
+
+**Test file conventions:**
+- Place tests in `tests/` mirroring the source structure
+- Renderer components: `tests/renderer/components/<ComponentName>.test.tsx`
+- Stores: `tests/renderer/stores/<store-name>.test.ts`
+- Main process services: `tests/main/services/<service-name>.test.ts`
+- Follow existing test patterns in the codebase
+
+**When writing tests:**
+- Test the public API/behavior, not implementation details
+- Include both happy path and edge cases
+- Use descriptive test names that explain what is being tested
+- Mock external dependencies (git operations, IPC, etc.)
+
+## 2. Build Verification
+
+Run the full build to check for errors:
+
+```bash
+npm run build
+```
+
+If there are any build errors:
+- Review the error messages carefully
+- Fix all errors in the affected files
+- Re-run the build until it passes
+
+## 3. Linting
+
+Run ESLint to check for code quality issues:
+
+```bash
+npm run lint
+```
+
+If there are any linting errors:
+- Fix all linting errors (do not just disable rules)
+- Prefer auto-fixing when possible: `npm run lint -- --fix`
+- Re-run the linter until it passes with no errors
+
+## 4. Run Unit Tests
+
+Run the test suite to ensure no regressions:
+
+```bash
+npm run test -- --run
+```
+
+If any tests fail:
+- Analyze the test failure output
+- Determine if the test needs to be updated (for intentional behavior changes) or if there's a bug in your code
+- Fix the issue and re-run tests until all pass
+
+## Important Notes
+
+- **Do not skip these steps** - Every code change must be verified
+- **Fix issues before completing** - Do not leave broken builds, linting errors, or failing tests
+- **Run in sequence** - Build errors should be fixed before linting, linting before tests
+- **Report blockers** - If you cannot resolve an issue, explain it clearly to the user before proceeding
