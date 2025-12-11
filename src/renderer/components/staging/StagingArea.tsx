@@ -1,4 +1,3 @@
-import React from 'react';
 import { useRepositoryStore } from '../../stores/repository.store';
 import { useUIStore } from '../../stores/ui.store';
 import { FileList } from './FileList';

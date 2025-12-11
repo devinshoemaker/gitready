@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useUIStore } from '../../stores/ui.store';
 import { useRepositoryStore } from '../../stores/repository.store';
 import { DiffLine } from './DiffLine';

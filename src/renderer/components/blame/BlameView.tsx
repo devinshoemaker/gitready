@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useUIStore } from '../../stores/ui.store';
-import { useCommitsStore } from '../../stores/commits.store';
 import type { GitBlame, GitBlameLine } from '../../../shared/types/git.types';
 
 export function BlameView() {
   const { selectedFile } = useUIStore();
-  const { selectCommit } = useCommitsStore();
   const [blame, setBlame] = useState<GitBlame | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

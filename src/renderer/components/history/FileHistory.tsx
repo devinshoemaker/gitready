@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useUIStore } from '../../stores/ui.store';
 import type { GitFileHistoryEntry } from '../../../shared/types/git.types';
 

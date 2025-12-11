@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useCommitsStore } from '../../stores/commits.store';
 import { useUIStore } from '../../stores/ui.store';
 import { APP_CONFIG } from '../../../shared/constants';

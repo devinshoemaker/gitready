@@ -1,4 +1,3 @@
-import React from 'react';
 import { GRAPH_CONFIG } from '../../../shared/constants';
 import type { GitCommit } from '../../../shared/types/git.types';
 
@@ -118,7 +117,7 @@ export function CommitNode({ node, isSelected, onSelect }: CommitNodeProps) {
       {/* Branch/tag refs */}
       {parsedRefs.length > 0 && (
         <g>
-          {parsedRefs.slice(0, 3).map((ref, index) => {
+          {parsedRefs.slice(0, 3).map((ref) => {
             const bgColor = ref.isHead ? '#00d9ff' : ref.isTag ? '#fbbf24' : ref.isRemote ? '#a855f7' : color;
             const textWidth = Math.min(ref.displayName.length * 6.5 + 12, 100);
             const xPos = x + 16 + refOffset;

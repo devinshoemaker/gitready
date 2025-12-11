@@ -1,4 +1,3 @@
-import React from 'react';
 import { useRepositoryStore } from '../stores/repository.store';
 
 export function WelcomeScreen() {

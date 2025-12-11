@@ -1,4 +1,3 @@
-import React from 'react';
 import { useBranchesStore } from '../../stores/branches.store';
 import { useUIStore } from '../../stores/ui.store';
 

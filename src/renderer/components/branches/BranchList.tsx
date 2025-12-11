@@ -1,4 +1,3 @@
-import React from 'react';
 import { BranchItem } from './BranchItem';
 import type { GitBranch } from '../../../shared/types/git.types';
 

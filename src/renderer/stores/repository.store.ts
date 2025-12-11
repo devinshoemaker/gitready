@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { RepositoryInfo, GitStatus, GitRemote } from '../../shared/types/git.types';
+import type { RepositoryInfo, GitStatus } from '../../shared/types/git.types';
 
 interface RepositoryState {
   // State

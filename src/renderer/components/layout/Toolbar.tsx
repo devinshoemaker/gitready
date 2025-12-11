@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useRepositoryStore } from '../../stores/repository.store';
 import { useBranchesStore } from '../../stores/branches.store';
 import { useUIStore } from '../../stores/ui.store';

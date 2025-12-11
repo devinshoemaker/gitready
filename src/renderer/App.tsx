@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRepositoryStore } from './stores/repository.store';
 import { useCommitsStore } from './stores/commits.store';
 import { useBranchesStore } from './stores/branches.store';

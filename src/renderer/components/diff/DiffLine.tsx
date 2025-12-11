@@ -1,4 +1,3 @@
-import React from 'react';
 import type { GitDiffLine } from '../../../shared/types/git.types';
 
 interface DiffLineProps {

@@ -1,6 +1,4 @@
-import React from 'react';
 import { useCommitsStore } from '../../stores/commits.store';
-import type { GitCommit } from '../../../shared/types/git.types';
 
 export function CommitDetails() {
   const { selectedCommit, selectCommit } = useCommitsStore();

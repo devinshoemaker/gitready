@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useBranchesStore } from '../../stores/branches.store';
-import { useRepositoryStore } from '../../stores/repository.store';
 import { useUIStore } from '../../stores/ui.store';
 import { BranchList } from '../branches/BranchList';
 import { StashList } from '../stash/StashList';
@@ -8,10 +7,9 @@ import { StashList } from '../stash/StashList';
 type SidebarSection = 'local' | 'remote' | 'stashes' | 'tags';
 
 export function Sidebar() {
-  const { sidebarCollapsed, toggleSidebar, setCurrentView, toggleCreateBranch } = useUIStore();
+  const { sidebarCollapsed, toggleSidebar, toggleCreateBranch } = useUIStore();
   const branches = useBranchesStore((state) => state.branches);
   const stashes = useBranchesStore((state) => state.stashes);
-  const repository = useRepositoryStore((state) => state.repository);
 
   const [expandedSections, setExpandedSections] = useState<Set<SidebarSection>>(
     new Set(['local', 'remote'])
