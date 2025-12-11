@@ -133,13 +133,13 @@ describe('SearchPanel', () => {
       vi.advanceTimersByTime(400);
     });
 
-    // Update store with results
-    useCommitsStore.setState({ commits });
-
-    await waitFor(() => {
-      expect(screen.getByText('Fix bug')).toBeInTheDocument();
-      expect(screen.getByText('Add feature')).toBeInTheDocument();
+    // Update store with results and trigger re-render
+    await act(async () => {
+      useCommitsStore.setState({ commits });
     });
+
+    expect(screen.getByText('Fix bug')).toBeInTheDocument();
+    expect(screen.getByText('Add feature')).toBeInTheDocument();
   });
 
   it('should show no results message', async () => {
@@ -157,9 +157,12 @@ describe('SearchPanel', () => {
       vi.advanceTimersByTime(400);
     });
 
-    await waitFor(() => {
-      expect(screen.getByText('No commits found')).toBeInTheDocument();
+    // Ensure store has empty commits
+    await act(async () => {
+      useCommitsStore.setState({ commits: [], isLoading: false });
     });
+
+    expect(screen.getByText('No commits found')).toBeInTheDocument();
   });
 
   it('should close on Escape key', () => {
@@ -243,16 +246,17 @@ describe('SearchPanel', () => {
       createMockCommit('ghi789', 'Third'),
     ];
 
-    useCommitsStore.setState({ commits });
-
     render(<SearchPanel />);
 
     const input = screen.getByPlaceholderText('Search commits...');
     fireEvent.change(input, { target: { value: 'test' } });
 
-    await waitFor(() => {
-      expect(screen.getByText('3 results')).toBeInTheDocument();
+    // Update store with results and trigger re-render
+    await act(async () => {
+      useCommitsStore.setState({ commits });
     });
+
+    expect(screen.getByText('3 results')).toBeInTheDocument();
   });
 
   it('should show keyboard shortcuts in footer', () => {

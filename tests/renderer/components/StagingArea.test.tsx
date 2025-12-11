@@ -159,6 +159,46 @@ describe('StagingArea', () => {
     });
   });
 
+  it('should call refreshStatus after unstaging all files', async () => {
+    const mockRefreshStatus = vi.fn().mockResolvedValue(undefined);
+    const stagedFiles = [createMockFileStatus('file.ts', 'M', ' ')];
+    useRepositoryStore.setState({
+      status: createMockStatus(stagedFiles, []),
+      refreshStatus: mockRefreshStatus,
+    });
+
+    window.electronAPI.git.unstage = vi.fn().mockResolvedValue({ success: true });
+
+    render(<StagingArea />);
+
+    fireEvent.click(screen.getByText('Unstage All'));
+
+    await waitFor(() => {
+      expect(window.electronAPI.git.unstage).toHaveBeenCalledWith(['file.ts']);
+      expect(mockRefreshStatus).toHaveBeenCalled();
+    });
+  });
+
+  it('should call refreshStatus after staging all files', async () => {
+    const mockRefreshStatus = vi.fn().mockResolvedValue(undefined);
+    const unstagedFiles = [createMockFileStatus('file.ts', ' ', 'M')];
+    useRepositoryStore.setState({
+      status: createMockStatus([], unstagedFiles),
+      refreshStatus: mockRefreshStatus,
+    });
+
+    window.electronAPI.git.stage = vi.fn().mockResolvedValue({ success: true });
+
+    render(<StagingArea />);
+
+    fireEvent.click(screen.getByText('Stage All'));
+
+    await waitFor(() => {
+      expect(window.electronAPI.git.stage).toHaveBeenCalledWith(['file.ts']);
+      expect(mockRefreshStatus).toHaveBeenCalled();
+    });
+  });
+
   it('should toggle commit panel', () => {
     useRepositoryStore.setState({
       status: createMockStatus([], []),

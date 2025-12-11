@@ -92,7 +92,7 @@ export function DiffViewer() {
     );
   }
 
-  if (!diff || diff.hunks.length === 0) {
+  if (!diff || (!diff.isBinary && diff.hunks.length === 0)) {
     return (
       <div className="h-full flex items-center justify-center text-gk-text-muted">
         <div className="text-center">

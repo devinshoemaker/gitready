@@ -70,7 +70,8 @@ describe('ConflictResolver', () => {
 
     render(<ConflictResolver />);
 
-    expect(screen.getByText('file1.ts')).toBeInTheDocument();
+    // Files appear in both sidebar and header, so use getAllByText
+    expect(screen.getAllByText('file1.ts').length).toBeGreaterThan(0);
     expect(screen.getByText('file2.ts')).toBeInTheDocument();
   });
 

@@ -190,7 +190,7 @@ describe('BranchItem', () => {
 
     await waitFor(() => {
       expect(window.confirm).toHaveBeenCalled();
-      expect(window.electronAPI.git.deleteBranch).toHaveBeenCalledWith('old-feature');
+      expect(window.electronAPI.git.deleteBranch).toHaveBeenCalledWith('old-feature', undefined);
     });
   });
 

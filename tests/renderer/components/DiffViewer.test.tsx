@@ -222,5 +222,81 @@ describe('DiffViewer', () => {
       expect(screen.getByText('@@ -1,3 +1,4 @@')).toBeInTheDocument();
     });
   });
+
+  it('should refresh diff when window gains focus', async () => {
+    const mockDiff = vi.fn().mockResolvedValue({
+      success: true,
+      data: createMockDiff('test.ts'),
+    });
+    window.electronAPI.git.diff = mockDiff;
+
+    useUIStore.setState({ selectedFile: 'test.ts' });
+
+    render(<DiffViewer />);
+
+    // Wait for initial load
+    await waitFor(() => {
+      expect(mockDiff).toHaveBeenCalled();
+    });
+
+    // Clear mock to track new calls
+    mockDiff.mockClear();
+
+    // Simulate focus event
+    window.dispatchEvent(new Event('focus'));
+
+    // Should reload diff
+    await waitFor(() => {
+      expect(mockDiff).toHaveBeenCalled();
+    });
+  });
+
+  it('should refresh diff when document becomes visible', async () => {
+    const mockDiff = vi.fn().mockResolvedValue({
+      success: true,
+      data: createMockDiff('test.ts'),
+    });
+    window.electronAPI.git.diff = mockDiff;
+
+    useUIStore.setState({ selectedFile: 'test.ts' });
+
+    render(<DiffViewer />);
+
+    // Wait for initial load
+    await waitFor(() => {
+      expect(mockDiff).toHaveBeenCalled();
+    });
+
+    // Clear mock to track new calls
+    mockDiff.mockClear();
+
+    // Simulate visibility change to visible
+    Object.defineProperty(document, 'visibilityState', {
+      value: 'visible',
+      writable: true,
+    });
+    document.dispatchEvent(new Event('visibilitychange'));
+
+    // Should reload diff
+    await waitFor(() => {
+      expect(mockDiff).toHaveBeenCalled();
+    });
+  });
+
+  it('should not add focus listeners when no file is selected', async () => {
+    const addEventListenerSpy = vi.spyOn(window, 'addEventListener');
+
+    useUIStore.setState({ selectedFile: null });
+
+    render(<DiffViewer />);
+
+    // Should not add focus listener for refreshing diff
+    const focusCalls = addEventListenerSpy.mock.calls.filter(
+      (call) => call[0] === 'focus'
+    );
+    expect(focusCalls.length).toBe(0);
+
+    addEventListenerSpy.mockRestore();
+  });
 });
 
