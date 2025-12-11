@@ -14,26 +14,50 @@ export function DiffViewer() {
   // Determine if file is staged
   const isStaged = status?.staged.some((f) => f.path === selectedFile) || false;
 
+  const loadDiff = async () => {
+    if (!selectedFile) return;
+    
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await window.electronAPI.git.diff(selectedFile, isStaged);
+      if (response.success) {
+        setDiff(response.data);
+      } else {
+        setError(response.error);
+      }
+    } catch (err) {
+      setError((err as Error).message);
+    }
+    setIsLoading(false);
+  };
+
+  // Load diff when file or staged status changes
+  useEffect(() => {
+    loadDiff();
+  }, [selectedFile, isStaged]);
+
+  // Refresh diff when window gains focus
   useEffect(() => {
     if (!selectedFile) return;
 
-    const loadDiff = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const response = await window.electronAPI.git.diff(selectedFile, isStaged);
-        if (response.success) {
-          setDiff(response.data);
-        } else {
-          setError(response.error);
-        }
-      } catch (err) {
-        setError((err as Error).message);
-      }
-      setIsLoading(false);
+    const handleFocus = () => {
+      loadDiff();
     };
 
-    loadDiff();
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadDiff();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [selectedFile, isStaged]);
 
   if (!selectedFile) {

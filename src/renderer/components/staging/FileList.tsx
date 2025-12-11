@@ -15,10 +15,6 @@ export function FileList({ files, type }: FileListProps) {
 
   const handleFileClick = (file: GitFileStatus) => {
     selectFile(file.path);
-  };
-
-  const handleFileDoubleClick = (file: GitFileStatus) => {
-    selectFile(file.path);
     setCurrentView('diff');
   };
 
@@ -78,7 +74,6 @@ export function FileList({ files, type }: FileListProps) {
           <div
             key={file.path}
             onClick={() => handleFileClick(file)}
-            onDoubleClick={() => handleFileDoubleClick(file)}
             className={`
               group flex items-center gap-2 px-4 py-1.5 cursor-pointer
               ${isSelected ? 'bg-gk-accent-cyan/10' : 'hover:bg-gk-bg-secondary/50'}
