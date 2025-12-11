@@ -62,8 +62,18 @@ export function CommitNode({ node, isSelected, onSelect }: CommitNodeProps) {
   const parsedRefs = parseRefs(commit.refs);
   const nodeRadius = isMergeCommit ? GRAPH_CONFIG.NODE_RADIUS + 2 : GRAPH_CONFIG.NODE_RADIUS;
 
-  // Calculate total width needed for refs
-  let refOffset = 0;
+  // Pre-calculate ref positions and widths
+  const refPositions = parsedRefs.slice(0, 3).map((ref, index) => {
+    const textWidth = Math.min(ref.displayName.length * 6.5 + 12, 100);
+    const previousWidths = parsedRefs.slice(0, index).reduce((acc, r) => {
+      return acc + Math.min(r.displayName.length * 6.5 + 12, 100) + 4;
+    }, 0);
+    return { ref, textWidth, xPos: x + 16 + previousWidths };
+  });
+
+  const totalRefOffset = refPositions.length > 0 
+    ? refPositions[refPositions.length - 1].xPos - x - 16 + refPositions[refPositions.length - 1].textWidth + 4
+    : 0;
 
   return (
     <g
@@ -117,11 +127,8 @@ export function CommitNode({ node, isSelected, onSelect }: CommitNodeProps) {
       {/* Branch/tag refs */}
       {parsedRefs.length > 0 && (
         <g>
-          {parsedRefs.slice(0, 3).map((ref) => {
+          {refPositions.map(({ ref, textWidth, xPos }) => {
             const bgColor = ref.isHead ? '#00d9ff' : ref.isTag ? '#fbbf24' : ref.isRemote ? '#a855f7' : color;
-            const textWidth = Math.min(ref.displayName.length * 6.5 + 12, 100);
-            const xPos = x + 16 + refOffset;
-            refOffset += textWidth + 4;
 
             return (
               <g key={ref.original} transform={`translate(${xPos}, ${y - 8})`}>
@@ -163,7 +170,7 @@ export function CommitNode({ node, isSelected, onSelect }: CommitNodeProps) {
           })}
           {parsedRefs.length > 3 && (
             <text
-              x={x + 16 + refOffset}
+              x={x + 16 + totalRefOffset}
               y={y}
               fontSize={10}
               fontFamily="JetBrains Mono, monospace"
@@ -177,7 +184,7 @@ export function CommitNode({ node, isSelected, onSelect }: CommitNodeProps) {
       )}
 
       {/* Commit info */}
-      <g transform={`translate(${x + 16 + Math.max(refOffset, 0) + (parsedRefs.length > 0 ? 8 : 0)}, ${y})`}>
+      <g transform={`translate(${x + 16 + Math.max(totalRefOffset, 0) + (parsedRefs.length > 0 ? 8 : 0)}, ${y})`}>
         {/* Message */}
         <text
           x={0}

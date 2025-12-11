@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useCommitsStore } from '../../stores/commits.store';
 import { useUIStore } from '../../stores/ui.store';
 import { APP_CONFIG } from '../../../shared/constants';
@@ -17,6 +17,12 @@ export function SearchPanel() {
   
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<NodeJS.Timeout>();
+
+  const handleSelectCommit = useCallback((commit: GitCommit) => {
+    selectCommit(commit);
+    setCurrentView('graph');
+    toggleSearch();
+  }, [selectCommit, setCurrentView, toggleSearch]);
 
   // Focus input on mount
   useEffect(() => {
@@ -41,7 +47,7 @@ export function SearchPanel() {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [results, selectedIndex, toggleSearch]);
+  }, [results, selectedIndex, toggleSearch, handleSelectCommit]);
 
   // Debounced search
   useEffect(() => {
@@ -72,12 +78,6 @@ export function SearchPanel() {
       setSelectedIndex(0);
     }
   }, [commits, query]);
-
-  const handleSelectCommit = (commit: GitCommit) => {
-    selectCommit(commit);
-    setCurrentView('graph');
-    toggleSearch();
-  };
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);

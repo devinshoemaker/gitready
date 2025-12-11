@@ -13,7 +13,7 @@ export class WatcherService {
     // Watch the repository for changes, excluding .git internals except for specific files
     this.watcher = chokidar.watch(repoPath, {
       ignored: [
-        /(^|[\/\\])\../, // Ignore dotfiles except .git
+        /(^|[/\\])\.\./, // Ignore dotfiles except .git
         /node_modules/,
         '**/node_modules/**',
         '**/.git/objects/**',

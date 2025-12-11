@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useUIStore } from '../../stores/ui.store';
 import { useRepositoryStore } from '../../stores/repository.store';
 import { DiffLine } from './DiffLine';
@@ -14,7 +14,7 @@ export function DiffViewer() {
   // Determine if file is staged
   const isStaged = status?.staged.some((f) => f.path === selectedFile) || false;
 
-  const loadDiff = async () => {
+  const loadDiff = useCallback(async () => {
     if (!selectedFile) return;
     
     setIsLoading(true);
@@ -30,12 +30,12 @@ export function DiffViewer() {
       setError((err as Error).message);
     }
     setIsLoading(false);
-  };
+  }, [selectedFile, isStaged]);
 
   // Load diff when file or staged status changes
   useEffect(() => {
     loadDiff();
-  }, [selectedFile, isStaged]);
+  }, [loadDiff]);
 
   // Refresh diff when window gains focus
   useEffect(() => {
@@ -58,7 +58,7 @@ export function DiffViewer() {
       window.removeEventListener('focus', handleFocus);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [selectedFile, isStaged]);
+  }, [selectedFile, loadDiff]);
 
   if (!selectedFile) {
     return (
