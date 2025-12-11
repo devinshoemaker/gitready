@@ -89,7 +89,7 @@ export function FileList({ files, type }: FileListProps) {
             </span>
 
             {/* File path */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 overflow-hidden group-hover:truncate">
               <span className="text-gk-text-muted text-xs">{getDirectory(file.path)}</span>
               <span className="text-gk-text text-sm">{getFileName(file.path)}</span>
             </div>
