@@ -10,6 +10,7 @@ interface StagingAreaProps {
 
 export function StagingArea({ fullWidth = false }: StagingAreaProps) {
   const status = useRepositoryStore((state) => state.status);
+  const refreshStatus = useRepositoryStore((state) => state.refreshStatus);
   const { isCommitPanelOpen, toggleCommitPanel } = useUIStore();
 
   if (!status) {
@@ -51,6 +52,7 @@ export function StagingArea({ fullWidth = false }: StagingAreaProps) {
                 onClick={async () => {
                   const files = status.staged.map((f) => f.path);
                   await window.electronAPI.git.unstage(files);
+                  await refreshStatus();
                 }}
                 className="text-xs text-gk-text-muted hover:text-gk-text"
               >
@@ -78,6 +80,7 @@ export function StagingArea({ fullWidth = false }: StagingAreaProps) {
                 onClick={async () => {
                   const files = status.unstaged.map((f) => f.path);
                   await window.electronAPI.git.stage(files);
+                  await refreshStatus();
                 }}
                 className="text-xs text-gk-text-muted hover:text-gk-text"
               >
