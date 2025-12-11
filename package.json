@@ -13,7 +13,8 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
-    "lint": "eslint src --ext .ts,.tsx"
+    "lint": "eslint src --ext .ts,.tsx",
+    "ci": "npm run build && npm run lint && npm run test"
   },
   "dependencies": {
     "chokidar": "^3.5.3",
