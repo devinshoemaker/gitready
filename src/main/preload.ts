@@ -13,6 +13,7 @@ import type {
 const electronAPI: ElectronAPI = {
   git: {
     openRepository: (path: string) => ipcRenderer.invoke(IPC_CHANNELS.GIT_OPEN_REPO, path),
+    closeRepository: () => ipcRenderer.invoke(IPC_CHANNELS.GIT_CLOSE_REPO),
     getStatus: () => ipcRenderer.invoke(IPC_CHANNELS.GIT_GET_STATUS),
     getLog: (options?: GitLogOptions) => ipcRenderer.invoke(IPC_CHANNELS.GIT_GET_LOG, options),
     getBranches: () => ipcRenderer.invoke(IPC_CHANNELS.GIT_GET_BRANCHES),

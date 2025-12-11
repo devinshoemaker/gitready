@@ -14,6 +14,7 @@ import type {
 export const IPC_CHANNELS = {
   // Git operations
   GIT_OPEN_REPO: 'git:open-repo',
+  GIT_CLOSE_REPO: 'git:close-repo',
   GIT_GET_STATUS: 'git:get-status',
   GIT_GET_LOG: 'git:get-log',
   GIT_GET_BRANCHES: 'git:get-branches',
@@ -100,6 +101,7 @@ export interface RepoChangedEvent {
 export interface ElectronAPI {
   git: {
     openRepository: (path: string) => Promise<IPCResponse<RepositoryInfo>>;
+    closeRepository: () => Promise<IPCResponse<void>>;
     getStatus: () => Promise<IPCResponse<GitStatus>>;
     getLog: (options?: GitLogOptions) => Promise<IPCResponse<GitCommit[]>>;
     getBranches: () => Promise<IPCResponse<GitBranch[]>>;

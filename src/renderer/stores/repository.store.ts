@@ -14,6 +14,7 @@ interface RepositoryState {
 
   // Actions
   openRepository: (path: string) => Promise<void>;
+  closeRepository: () => Promise<void>;
   refreshStatus: () => Promise<void>;
   setRepository: (repo: RepositoryInfo | null) => void;
   setStatus: (status: GitStatus | null) => void;
@@ -50,6 +51,17 @@ export const useRepositoryStore = create<RepositoryState>((set, get) => ({
       }
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });
+    }
+  },
+
+  closeRepository: async () => {
+    // Always reset the UI state to return to welcome screen
+    set({ repository: null, status: null, isLoading: false, error: null });
+    // Clean up main process resources (watcher, git service)
+    try {
+      await window.electronAPI.git.closeRepository();
+    } catch {
+      // Ignore errors from main process cleanup - UI is already reset
     }
   },
 

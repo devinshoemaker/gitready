@@ -18,6 +18,7 @@ Object.defineProperty(window, 'electronAPI', {
   value: {
     git: {
       openRepository: vi.fn(),
+      closeRepository: vi.fn(),
       getStatus: vi.fn(),
       getLog: vi.fn(),
       getBranches: vi.fn(),

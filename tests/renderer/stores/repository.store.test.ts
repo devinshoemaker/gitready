@@ -162,6 +162,50 @@ describe('useRepositoryStore', () => {
     });
   });
 
+  describe('closeRepository', () => {
+    it('should call electronAPI.git.closeRepository and reset state', async () => {
+      // Set some state to simulate an open repository
+      useRepositoryStore.setState({
+        repository: { path: '/test', name: 'test', isGitRepo: true, currentBranch: 'main', remotes: [] },
+        status: { current: 'main', isClean: true } as any,
+        isLoading: false,
+        error: null,
+      });
+
+      window.electronAPI.git.closeRepository = vi.fn().mockResolvedValue({ success: true, data: undefined });
+
+      await useRepositoryStore.getState().closeRepository();
+
+      expect(window.electronAPI.git.closeRepository).toHaveBeenCalled();
+      const state = useRepositoryStore.getState();
+      expect(state.repository).toBeNull();
+      expect(state.status).toBeNull();
+      expect(state.isLoading).toBe(false);
+      expect(state.error).toBeNull();
+    });
+
+    it('should reset state even if closeRepository IPC fails', async () => {
+      useRepositoryStore.setState({
+        repository: { path: '/test', name: 'test', isGitRepo: true, currentBranch: 'main', remotes: [] },
+        status: { current: 'main', isClean: true } as any,
+        isLoading: false,
+        error: null,
+      });
+
+      window.electronAPI.git.closeRepository = vi.fn().mockRejectedValue(new Error('Failed to close'));
+
+      await useRepositoryStore.getState().closeRepository();
+
+      expect(window.electronAPI.git.closeRepository).toHaveBeenCalled();
+      // State should still be reset even if IPC fails
+      const state = useRepositoryStore.getState();
+      expect(state.repository).toBeNull();
+      expect(state.status).toBeNull();
+      expect(state.isLoading).toBe(false);
+      expect(state.error).toBeNull();
+    });
+  });
+
   describe('recentRepositories', () => {
     it('should have empty recentRepositories initially', () => {
       const state = useRepositoryStore.getState();

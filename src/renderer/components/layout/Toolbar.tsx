@@ -1,12 +1,16 @@
 import { useState } from 'react';
 import { useRepositoryStore } from '../../stores/repository.store';
 import { useBranchesStore } from '../../stores/branches.store';
+import { useCommitsStore } from '../../stores/commits.store';
 import { useUIStore } from '../../stores/ui.store';
 
 export function Toolbar() {
   const repository = useRepositoryStore((state) => state.repository);
   const status = useRepositoryStore((state) => state.status);
+  const closeRepository = useRepositoryStore((state) => state.closeRepository);
   const currentBranch = useBranchesStore((state) => state.currentBranch);
+  const resetBranches = useBranchesStore((state) => state.reset);
+  const resetCommits = useCommitsStore((state) => state.reset);
   const { toggleSearch, showNotification } = useUIStore();
   
   const [isPushing, setIsPushing] = useState(false);
@@ -58,6 +62,12 @@ export function Toolbar() {
     setIsFetching(false);
   };
 
+  const handleCloseRepository = async () => {
+    resetBranches();
+    resetCommits();
+    await closeRepository();
+  };
+
   return (
     <div className="h-14 bg-gk-bg-secondary border-b border-gk-border flex items-center pl-20 pr-4 gap-4 drag-region">
       {/* Repository name */}
@@ -73,6 +83,16 @@ export function Toolbar() {
           <div className="text-sm font-medium text-gk-text">{repository?.name}</div>
           <div className="text-xs text-gk-text-muted">{currentBranch || 'No branch'}</div>
         </div>
+        {/* Close Repository */}
+        <button
+          onClick={handleCloseRepository}
+          className="p-1.5 rounded-lg hover:bg-gk-bg-tertiary transition-colors ml-1"
+          title="Close repository"
+        >
+          <svg className="w-4 h-4 text-gk-text-muted hover:text-gk-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
 
       {/* Separator */}

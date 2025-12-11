@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { Toolbar } from '../../../src/renderer/components/layout/Toolbar';
 import { useRepositoryStore } from '../../../src/renderer/stores/repository.store';
 import { useBranchesStore } from '../../../src/renderer/stores/branches.store';
+import { useCommitsStore } from '../../../src/renderer/stores/commits.store';
 import { useUIStore } from '../../../src/renderer/stores/ui.store';
 
 describe('Toolbar', () => {
@@ -188,5 +189,34 @@ describe('Toolbar', () => {
 
     const toolbar = container.firstChild as HTMLElement;
     expect(toolbar).toHaveClass('pr-4');
+  });
+
+  it('should render close repository button', () => {
+    render(<Toolbar />);
+
+    expect(screen.getByTitle('Close repository')).toBeInTheDocument();
+  });
+
+  it('should call closeRepository and reset stores when close button is clicked', async () => {
+    const mockCloseRepository = vi.fn().mockResolvedValue(undefined);
+    const mockResetBranches = vi.fn();
+    const mockResetCommits = vi.fn();
+
+    useRepositoryStore.setState({ closeRepository: mockCloseRepository });
+    useBranchesStore.setState({ reset: mockResetBranches });
+    useCommitsStore.setState({ reset: mockResetCommits });
+
+    window.electronAPI.git.closeRepository = vi.fn().mockResolvedValue({ success: true, data: undefined });
+
+    render(<Toolbar />);
+
+    const closeButton = screen.getByTitle('Close repository');
+    fireEvent.click(closeButton);
+
+    await waitFor(() => {
+      expect(mockResetBranches).toHaveBeenCalled();
+      expect(mockResetCommits).toHaveBeenCalled();
+      expect(mockCloseRepository).toHaveBeenCalled();
+    });
   });
 });

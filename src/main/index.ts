@@ -77,6 +77,19 @@ function setupIpcHandlers() {
     }
   });
 
+  ipcMain.handle(IPC_CHANNELS.GIT_CLOSE_REPO, async () => {
+    try {
+      if (watcherService) {
+        watcherService.close();
+        watcherService = null;
+      }
+      gitService = null;
+      return { success: true, data: undefined };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
   ipcMain.handle(IPC_CHANNELS.GIT_GET_STATUS, async () => {
     try {
       if (!gitService) throw new Error('No repository opened');
