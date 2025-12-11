@@ -10,6 +10,16 @@ alwaysApply: true
 
 After making any code changes to TypeScript or React files, you MUST follow these steps in order:
 
+## 0. Set Node.js Version
+
+Before running any commands, ensure you are using the correct Node.js version specified in `.nvmrc`:
+
+```bash
+nvm use
+```
+
+This project requires Node.js version 22. If you don't have this version installed, run `nvm install` first.
+
 ## 1. Write Unit Tests
 
 Before verifying your changes, determine if unit tests are needed and write them:
