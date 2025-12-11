@@ -59,7 +59,7 @@ export function Toolbar() {
   };
 
   return (
-    <div className="h-14 bg-gk-bg-secondary border-b border-gk-border flex items-center px-4 gap-4 drag-region">
+    <div className="h-14 bg-gk-bg-secondary border-b border-gk-border flex items-center pl-20 pr-4 gap-4 drag-region">
       {/* Repository name */}
       <div className="flex items-center gap-2 no-drag">
         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-gk-accent-cyan to-gk-accent-magenta p-0.5">
