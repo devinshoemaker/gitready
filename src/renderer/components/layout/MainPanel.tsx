@@ -1,7 +1,9 @@
 import React from 'react';
 import { useUIStore, ViewType } from '../../stores/ui.store';
+import { useCommitsStore } from '../../stores/commits.store';
 import { CommitGraph } from '../graph/CommitGraph';
 import { StagingArea } from '../staging/StagingArea';
+import { CommitDetails } from '../commits/CommitDetails';
 import { DiffViewer } from '../diff/DiffViewer';
 import { BlameView } from '../blame/BlameView';
 import { FileHistory } from '../history/FileHistory';
@@ -9,6 +11,7 @@ import { ConflictResolver } from '../conflicts/ConflictResolver';
 
 export function MainPanel() {
   const { currentView, selectedFile } = useUIStore();
+  const selectedCommit = useCommitsStore((state) => state.selectedCommit);
 
   const renderContent = () => {
     switch (currentView) {
@@ -19,7 +22,7 @@ export function MainPanel() {
               <CommitGraph />
             </div>
             <div className="w-96 border-l border-gk-border">
-              <StagingArea />
+              {selectedCommit ? <CommitDetails /> : <StagingArea />}
             </div>
           </div>
         );
