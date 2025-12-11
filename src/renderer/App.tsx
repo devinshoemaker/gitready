@@ -43,6 +43,32 @@ function App() {
     }
   }, [repository, fetchCommits, fetchBranches, fetchStashes]);
 
+  // Refresh git status when window gains focus
+  useEffect(() => {
+    if (!repository) return;
+
+    const handleFocus = () => {
+      refreshStatus();
+      fetchCommits();
+      fetchBranches();
+      fetchStashes();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        handleFocus();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [repository, refreshStatus, fetchCommits, fetchBranches, fetchStashes]);
+
   if (!repository) {
     return <WelcomeScreen />;
   }
