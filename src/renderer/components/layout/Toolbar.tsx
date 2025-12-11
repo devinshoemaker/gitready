@@ -7,6 +7,7 @@ import { useUIStore } from '../../stores/ui.store';
 export function Toolbar() {
   const repository = useRepositoryStore((state) => state.repository);
   const status = useRepositoryStore((state) => state.status);
+  const refreshStatus = useRepositoryStore((state) => state.refreshStatus);
   const closeRepository = useRepositoryStore((state) => state.closeRepository);
   const currentBranch = useBranchesStore((state) => state.currentBranch);
   const resetBranches = useBranchesStore((state) => state.reset);
@@ -22,6 +23,7 @@ export function Toolbar() {
     try {
       const response = await window.electronAPI.git.push();
       if (response.success) {
+        await refreshStatus();
         showNotification('success', 'Push completed successfully');
       } else {
         showNotification('error', response.error);
@@ -37,6 +39,7 @@ export function Toolbar() {
     try {
       const response = await window.electronAPI.git.pull();
       if (response.success) {
+        await refreshStatus();
         showNotification('success', 'Pull completed successfully');
       } else {
         showNotification('error', response.error);
@@ -52,6 +55,7 @@ export function Toolbar() {
     try {
       const response = await window.electronAPI.git.fetch();
       if (response.success) {
+        await refreshStatus();
         showNotification('success', 'Fetch completed successfully');
       } else {
         showNotification('error', response.error);

@@ -152,6 +152,38 @@ describe('Toolbar', () => {
     });
   });
 
+  it('should refresh status after successful pull', async () => {
+    const mockShowNotification = vi.fn();
+    useUIStore.setState({ showNotification: mockShowNotification });
+    window.electronAPI.git.pull = vi.fn().mockResolvedValue({ success: true });
+    window.electronAPI.git.getStatus = vi.fn().mockResolvedValue({
+      success: true,
+      data: {
+        current: 'main',
+        tracking: 'origin/main',
+        ahead: 0,
+        behind: 0,
+        staged: [],
+        unstaged: [],
+        conflicted: [],
+        created: [],
+        deleted: [],
+        modified: [],
+        renamed: [],
+        isClean: true,
+      },
+    });
+
+    render(<Toolbar />);
+
+    const pullButton = screen.getByTitle('Pull');
+    fireEvent.click(pullButton);
+
+    await waitFor(() => {
+      expect(window.electronAPI.git.getStatus).toHaveBeenCalled();
+    });
+  });
+
   it('should call git.push when Push button is clicked', async () => {
     const mockShowNotification = vi.fn();
     useUIStore.setState({ showNotification: mockShowNotification });
@@ -168,6 +200,38 @@ describe('Toolbar', () => {
     });
   });
 
+  it('should refresh status after successful push', async () => {
+    const mockShowNotification = vi.fn();
+    useUIStore.setState({ showNotification: mockShowNotification });
+    window.electronAPI.git.push = vi.fn().mockResolvedValue({ success: true });
+    window.electronAPI.git.getStatus = vi.fn().mockResolvedValue({
+      success: true,
+      data: {
+        current: 'main',
+        tracking: 'origin/main',
+        ahead: 0,
+        behind: 0,
+        staged: [],
+        unstaged: [],
+        conflicted: [],
+        created: [],
+        deleted: [],
+        modified: [],
+        renamed: [],
+        isClean: true,
+      },
+    });
+
+    render(<Toolbar />);
+
+    const pushButton = screen.getByTitle('Push');
+    fireEvent.click(pushButton);
+
+    await waitFor(() => {
+      expect(window.electronAPI.git.getStatus).toHaveBeenCalled();
+    });
+  });
+
   it('should call git.fetch when Fetch button is clicked', async () => {
     const mockShowNotification = vi.fn();
     useUIStore.setState({ showNotification: mockShowNotification });
@@ -181,6 +245,38 @@ describe('Toolbar', () => {
     await waitFor(() => {
       expect(window.electronAPI.git.fetch).toHaveBeenCalled();
       expect(mockShowNotification).toHaveBeenCalledWith('success', 'Fetch completed successfully');
+    });
+  });
+
+  it('should refresh status after successful fetch', async () => {
+    const mockShowNotification = vi.fn();
+    useUIStore.setState({ showNotification: mockShowNotification });
+    window.electronAPI.git.fetch = vi.fn().mockResolvedValue({ success: true });
+    window.electronAPI.git.getStatus = vi.fn().mockResolvedValue({
+      success: true,
+      data: {
+        current: 'main',
+        tracking: 'origin/main',
+        ahead: 0,
+        behind: 0,
+        staged: [],
+        unstaged: [],
+        conflicted: [],
+        created: [],
+        deleted: [],
+        modified: [],
+        renamed: [],
+        isClean: true,
+      },
+    });
+
+    render(<Toolbar />);
+
+    const fetchButton = screen.getByTitle('Fetch');
+    fireEvent.click(fetchButton);
+
+    await waitFor(() => {
+      expect(window.electronAPI.git.getStatus).toHaveBeenCalled();
     });
   });
 
