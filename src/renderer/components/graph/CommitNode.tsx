@@ -68,7 +68,7 @@ export function CommitNode({ node, isSelected, onSelect }: CommitNodeProps) {
 
   return (
     <g
-      className="commit-node cursor-pointer"
+      className="commit-node cursor-pointer outline-none"
       onClick={onSelect}
       role="button"
       tabIndex={0}
@@ -111,8 +111,6 @@ export function CommitNode({ node, isSelected, onSelect }: CommitNodeProps) {
           cy={y}
           r={nodeRadius}
           fill={color}
-          stroke={isSelected ? '#fff' : 'transparent'}
-          strokeWidth={2}
           className="transition-all duration-150"
         />
       )}

@@ -56,11 +56,10 @@ body {
 /* Commit graph node */
 .commit-node {
   cursor: pointer;
-  transition: transform 0.15s ease-out, filter 0.15s ease-out;
+  transition: filter 0.15s ease-out;
 }
 
 .commit-node:hover {
-  transform: scale(1.2);
   filter: brightness(1.2);
 }
 
