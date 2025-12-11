@@ -1,7 +1,34 @@
+import { useEffect } from 'react';
 import { useRepositoryStore } from '../stores/repository.store';
 
+function formatRelativeTime(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffSeconds = Math.floor(diffMs / 1000);
+  const diffMinutes = Math.floor(diffSeconds / 60);
+  const diffHours = Math.floor(diffMinutes / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffDays > 0) {
+    return diffDays === 1 ? '1 day ago' : `${diffDays} days ago`;
+  }
+  if (diffHours > 0) {
+    return diffHours === 1 ? '1 hour ago' : `${diffHours} hours ago`;
+  }
+  if (diffMinutes > 0) {
+    return diffMinutes === 1 ? '1 minute ago' : `${diffMinutes} minutes ago`;
+  }
+  return 'Just now';
+}
+
 export function WelcomeScreen() {
-  const { openRepository, isLoading, error } = useRepositoryStore();
+  const { openRepository, isLoading, error, recentRepositories, loadRecentRepositories } =
+    useRepositoryStore();
+
+  useEffect(() => {
+    loadRecentRepositories();
+  }, [loadRecentRepositories]);
 
   const handleOpenRepository = async () => {
     const path = await window.electronAPI.dialog.openDirectory();
@@ -92,11 +119,48 @@ export function WelcomeScreen() {
       )}
 
       {/* Recent repositories */}
-      <div className="mt-12 text-center">
-        <h3 className="text-sm font-medium text-gk-text-muted uppercase tracking-wider mb-4">
+      <div className="mt-12 w-80">
+        <h3 className="text-sm font-medium text-gk-text-muted uppercase tracking-wider mb-4 text-center">
           Recent Repositories
         </h3>
-        <p className="text-gk-text-muted text-sm">No recent repositories</p>
+        {recentRepositories.length === 0 ? (
+          <p className="text-gk-text-muted text-sm text-center">No recent repositories</p>
+        ) : (
+          <ul className="space-y-2">
+            {recentRepositories.map((repo) => (
+              <li key={repo.path}>
+                <button
+                  onClick={() => openRepository(repo.path)}
+                  disabled={isLoading}
+                  className="w-full text-left px-4 py-3 rounded-lg bg-gk-panel hover:bg-gk-hover transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <svg
+                      className="w-5 h-5 text-gk-accent-cyan flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+                      />
+                    </svg>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-gk-text font-medium truncate">{repo.name}</div>
+                      <div className="text-gk-text-muted text-xs truncate">{repo.path}</div>
+                    </div>
+                    <span className="text-gk-text-muted text-xs flex-shrink-0">
+                      {formatRelativeTime(repo.lastOpened)}
+                    </span>
+                  </div>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );

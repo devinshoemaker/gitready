@@ -10,7 +10,9 @@ describe('WelcomeScreen', () => {
       status: null,
       isLoading: false,
       error: null,
+      recentRepositories: [],
     });
+    localStorage.clear();
     vi.clearAllMocks();
   });
 
@@ -98,6 +100,70 @@ describe('WelcomeScreen', () => {
 
     expect(screen.getByText('Recent Repositories')).toBeInTheDocument();
     expect(screen.getByText('No recent repositories')).toBeInTheDocument();
+  });
+
+  it('should display recent repositories when available', () => {
+    useRepositoryStore.setState({
+      recentRepositories: [
+        { path: '/test/repo1', name: 'repo1', lastOpened: new Date().toISOString() },
+        { path: '/test/repo2', name: 'repo2', lastOpened: new Date().toISOString() },
+      ],
+    });
+
+    render(<WelcomeScreen />);
+
+    expect(screen.getByText('repo1')).toBeInTheDocument();
+    expect(screen.getByText('repo2')).toBeInTheDocument();
+    expect(screen.getByText('/test/repo1')).toBeInTheDocument();
+    expect(screen.getByText('/test/repo2')).toBeInTheDocument();
+    expect(screen.queryByText('No recent repositories')).not.toBeInTheDocument();
+  });
+
+  it('should open repository when clicking on recent repository', async () => {
+    window.electronAPI.git.openRepository = vi.fn().mockResolvedValue({
+      success: true,
+      data: { path: '/test/repo1', name: 'repo1', isGitRepo: true, currentBranch: 'main', remotes: [] },
+    });
+    window.electronAPI.git.getStatus = vi.fn().mockResolvedValue({ success: true, data: {} });
+
+    useRepositoryStore.setState({
+      recentRepositories: [
+        { path: '/test/repo1', name: 'repo1', lastOpened: new Date().toISOString() },
+      ],
+    });
+
+    render(<WelcomeScreen />);
+
+    fireEvent.click(screen.getByText('repo1'));
+
+    await waitFor(() => {
+      expect(window.electronAPI.git.openRepository).toHaveBeenCalledWith('/test/repo1');
+    });
+  });
+
+  it('should show relative time for recent repositories', () => {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    useRepositoryStore.setState({
+      recentRepositories: [
+        { path: '/test/repo1', name: 'repo1', lastOpened: oneHourAgo },
+      ],
+    });
+
+    render(<WelcomeScreen />);
+
+    expect(screen.getByText('1 hour ago')).toBeInTheDocument();
+  });
+
+  it('should load recent repositories from localStorage on mount', () => {
+    const repos = [
+      { path: '/test/repo1', name: 'repo1', lastOpened: new Date().toISOString() },
+    ];
+    localStorage.setItem('gitkraken-clone-recent-repos', JSON.stringify(repos));
+
+    render(<WelcomeScreen />);
+
+    // The loadRecentRepositories is called on mount via useEffect
+    expect(screen.getByText('repo1')).toBeInTheDocument();
   });
 });
 

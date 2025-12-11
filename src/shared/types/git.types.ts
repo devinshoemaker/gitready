@@ -144,3 +144,9 @@ export interface RepositoryInfo {
   remotes: GitRemote[];
 }
 
+export interface RecentRepository {
+  path: string;
+  name: string;
+  lastOpened: string; // ISO date string
+}
+
