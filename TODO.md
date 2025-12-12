@@ -12,3 +12,4 @@
 - [ ] ! Rename GitKraken Clone to GitReady
 - [ ] ! Remove horizonal branches panel above git graph
 - [ ] ! Organize branches like directories
+- [ ] ! Update dependencies
