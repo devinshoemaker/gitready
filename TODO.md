@@ -9,3 +9,4 @@
 - [ ] !! Support multiple repos open at the same time
 - [ ] ! Rename GitKraken Clone to GitReady
 - [ ] ! Remove horizonal branches panel above git graph
+- [ ] !!! Fix stash button
