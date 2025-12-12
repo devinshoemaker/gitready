@@ -89,13 +89,13 @@ export function FileList({ files, type }: FileListProps) {
             </span>
 
             {/* File path */}
-            <div className="flex-1 min-w-0 overflow-hidden group-hover:truncate">
+            <div className="flex-1 min-w-0 truncate">
               <span className="text-gk-text-muted text-xs">{getDirectory(file.path)}</span>
               <span className="text-gk-text text-sm">{getFileName(file.path)}</span>
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="hidden group-hover:flex items-center gap-1 flex-shrink-0">
               {/* Stage/Unstage */}
               <button
                 onClick={(e) => handleStageToggle(e, file)}
