@@ -7,6 +7,7 @@ import type {
   GitBlame,
   GitFileHistoryEntry,
   GitMergeResult,
+  GitCommitFile,
   RepositoryInfo,
 } from './git.types';
 
@@ -42,6 +43,8 @@ export const IPC_CHANNELS = {
   GIT_SEARCH_COMMITS: 'git:search-commits',
   GIT_DISCARD_CHANGES: 'git:discard-changes',
   GIT_RESOLVE_CONFLICT: 'git:resolve-conflict',
+  GIT_COMMIT_FILES: 'git:commit-files',
+  GIT_COMMIT_FILE_DIFF: 'git:commit-file-diff',
   
   // Dialog operations
   DIALOG_OPEN_DIRECTORY: 'dialog:open-directory',
@@ -127,6 +130,8 @@ export interface ElectronAPI {
     searchCommits: (options: GitSearchOptions) => Promise<IPCResponse<GitCommit[]>>;
     discardChanges: (files: string[]) => Promise<IPCResponse<void>>;
     resolveConflict: (file: string, resolution: 'ours' | 'theirs' | 'manual', content?: string) => Promise<IPCResponse<void>>;
+    getCommitFiles: (hash: string) => Promise<IPCResponse<GitCommitFile[]>>;
+    getCommitFileDiff: (hash: string, file: string) => Promise<IPCResponse<GitDiff>>;
   };
   dialog: {
     openDirectory: () => Promise<string | null>;

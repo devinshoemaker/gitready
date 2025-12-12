@@ -4,6 +4,7 @@ import { useCommitsStore } from '../../stores/commits.store';
 import { CommitGraph } from '../graph/CommitGraph';
 import { StagingArea } from '../staging/StagingArea';
 import { CommitDetails } from '../commits/CommitDetails';
+import { CommitDiffViewer } from '../commits/CommitDiffViewer';
 import { DiffViewer } from '../diff/DiffViewer';
 import { BlameView } from '../blame/BlameView';
 import { FileHistory } from '../history/FileHistory';
@@ -12,6 +13,8 @@ import { ConflictResolver } from '../conflicts/ConflictResolver';
 export function MainPanel() {
   const { currentView, selectedFile } = useUIStore();
   const selectedCommit = useCommitsStore((state) => state.selectedCommit);
+  const selectedCommitFile = useCommitsStore((state) => state.selectedCommitFile);
+  const selectCommitFile = useCommitsStore((state) => state.selectCommitFile);
 
   const renderContent = () => {
     switch (currentView) {
@@ -19,7 +22,15 @@ export function MainPanel() {
         return (
           <div className="flex h-full">
             <div className="flex-1 overflow-hidden">
-              <CommitGraph />
+              {selectedCommit && selectedCommitFile ? (
+                <CommitDiffViewer
+                  commitHash={selectedCommit.hash}
+                  filePath={selectedCommitFile}
+                  onClose={() => selectCommitFile(null)}
+                />
+              ) : (
+                <CommitGraph />
+              )}
             </div>
             <div className="w-96 border-l border-gk-border">
               {selectedCommit ? <CommitDetails /> : <StagingArea />}

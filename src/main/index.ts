@@ -26,7 +26,7 @@ function createWindow() {
     backgroundColor: '#1a1a2e',
     titleBarStyle: 'hiddenInset',
     webPreferences: {
-      preload: path.join(__dirname, '../preload/preload.cjs'),
+      preload: path.join(__dirname, '../preload/preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
@@ -342,6 +342,26 @@ function setupIpcHandlers() {
       }
     }
   );
+
+  ipcMain.handle(IPC_CHANNELS.GIT_COMMIT_FILES, async (_, hash: string) => {
+    try {
+      if (!gitService) throw new Error('No repository opened');
+      const files = await gitService.getCommitFiles(hash);
+      return { success: true, data: files };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
+  ipcMain.handle(IPC_CHANNELS.GIT_COMMIT_FILE_DIFF, async (_, hash: string, file: string) => {
+    try {
+      if (!gitService) throw new Error('No repository opened');
+      const diff = await gitService.getCommitFileDiff(hash, file);
+      return { success: true, data: diff };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
 
   // File handlers
   ipcMain.handle(IPC_CHANNELS.FILE_READ, async (_, filePath: string) => {

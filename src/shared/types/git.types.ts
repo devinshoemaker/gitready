@@ -99,6 +99,12 @@ export interface GitDiff {
   hunks: GitDiffHunk[];
 }
 
+export interface GitCommitFile {
+  path: string;
+  status: 'A' | 'M' | 'D' | 'R' | 'C';  // Added, Modified, Deleted, Renamed, Copied
+  oldPath?: string;  // For renames
+}
+
 export interface GitBlame {
   lines: GitBlameLine[];
 }

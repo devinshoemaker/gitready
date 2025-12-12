@@ -40,6 +40,10 @@ Object.defineProperty(window, 'electronAPI', {
       blame: vi.fn(),
       fileHistory: vi.fn(),
       searchCommits: vi.fn(),
+      discardChanges: vi.fn(),
+      resolveConflict: vi.fn(),
+      getCommitFiles: vi.fn(),
+      getCommitFileDiff: vi.fn(),
     },
     dialog: {
       openDirectory: vi.fn(),

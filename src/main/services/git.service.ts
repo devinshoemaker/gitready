@@ -14,6 +14,7 @@ import type {
   GitBlameLine,
   GitFileHistoryEntry,
   GitMergeResult,
+  GitCommitFile,
   RepositoryInfo,
 } from '../../shared/types/git.types';
 import type {
@@ -512,6 +513,59 @@ export class GitService {
     }
 
     await this.git.add([file]);
+  }
+
+  async getCommitFiles(hash: string): Promise<GitCommitFile[]> {
+    // Use git diff-tree to get files changed in a commit
+    // For root commits (no parent), compare against empty tree
+    const args = ['diff-tree', '--no-commit-id', '--name-status', '-r', hash];
+    
+    try {
+      const result = await this.git.raw(args);
+      const lines = result.trim().split('\n').filter(Boolean);
+      
+      return lines.map((line) => {
+        const parts = line.split('\t');
+        const statusCode = parts[0];
+        
+        // Handle renames which have format: R100\toldPath\tnewPath
+        if (statusCode.startsWith('R') || statusCode.startsWith('C')) {
+          return {
+            path: parts[2],
+            status: statusCode[0] as GitCommitFile['status'],
+            oldPath: parts[1],
+          };
+        }
+        
+        return {
+          path: parts[1],
+          status: statusCode[0] as GitCommitFile['status'],
+        };
+      });
+    } catch (error) {
+      console.error('Error fetching commit files:', error);
+      return [];
+    }
+  }
+
+  async getCommitFileDiff(hash: string, file: string): Promise<GitDiff> {
+    // Use git show to get the diff for a specific file at a commit
+    const args = ['show', '--format=', hash, '--', file];
+    
+    try {
+      const diffOutput = await this.git.raw(args);
+      return this.parseDiff(file, diffOutput);
+    } catch (error) {
+      console.error('Error fetching commit file diff:', error);
+      return {
+        file,
+        isNew: false,
+        isDeleted: false,
+        isRenamed: false,
+        isBinary: false,
+        hunks: [],
+      };
+    }
   }
 }
 

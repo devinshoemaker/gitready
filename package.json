@@ -2,7 +2,7 @@
   "name": "gitkraken-clone",
   "version": "1.0.0",
   "description": "A Git GUI application built with Electron, React, and TypeScript",
-  "main": "dist/main/index.cjs",
+  "main": "dist/main/index.js",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && electron-builder",

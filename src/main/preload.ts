@@ -46,6 +46,10 @@ const electronAPI: ElectronAPI = {
       ipcRenderer.invoke(IPC_CHANNELS.GIT_DISCARD_CHANGES, files),
     resolveConflict: (file: string, resolution: 'ours' | 'theirs' | 'manual', content?: string) =>
       ipcRenderer.invoke(IPC_CHANNELS.GIT_RESOLVE_CONFLICT, file, resolution, content),
+    getCommitFiles: (hash: string) =>
+      ipcRenderer.invoke(IPC_CHANNELS.GIT_COMMIT_FILES, hash),
+    getCommitFileDiff: (hash: string, file: string) =>
+      ipcRenderer.invoke(IPC_CHANNELS.GIT_COMMIT_FILE_DIFF, hash, file),
   },
   dialog: {
     openDirectory: () => ipcRenderer.invoke(IPC_CHANNELS.DIALOG_OPEN_DIRECTORY),

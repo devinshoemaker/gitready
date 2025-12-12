@@ -26,6 +26,7 @@ describe('useCommitsStore', () => {
     useCommitsStore.setState({
       commits: [],
       selectedCommit: null,
+      selectedCommitFile: null,
       isLoading: false,
       hasMore: true,
       error: null,
@@ -40,6 +41,7 @@ describe('useCommitsStore', () => {
 
       expect(state.commits).toEqual([]);
       expect(state.selectedCommit).toBeNull();
+      expect(state.selectedCommitFile).toBeNull();
       expect(state.isLoading).toBe(false);
       expect(state.hasMore).toBe(true);
       expect(state.error).toBeNull();
@@ -164,6 +166,31 @@ describe('useCommitsStore', () => {
 
       expect(useCommitsStore.getState().selectedCommit).toBeNull();
     });
+
+    it('should clear selected commit file when selecting a commit', () => {
+      useCommitsStore.setState({ selectedCommitFile: 'src/file.ts' });
+      const commit = createMockCommit('abc123', 'Test');
+
+      useCommitsStore.getState().selectCommit(commit);
+
+      expect(useCommitsStore.getState().selectedCommitFile).toBeNull();
+    });
+  });
+
+  describe('selectCommitFile', () => {
+    it('should set selected commit file', () => {
+      useCommitsStore.getState().selectCommitFile('src/app.ts');
+
+      expect(useCommitsStore.getState().selectedCommitFile).toBe('src/app.ts');
+    });
+
+    it('should clear selected commit file when null', () => {
+      useCommitsStore.setState({ selectedCommitFile: 'src/app.ts' });
+
+      useCommitsStore.getState().selectCommitFile(null);
+
+      expect(useCommitsStore.getState().selectedCommitFile).toBeNull();
+    });
   });
 
   describe('searchCommits', () => {
@@ -203,6 +230,7 @@ describe('useCommitsStore', () => {
       useCommitsStore.setState({
         commits: [createMockCommit('abc', 'Test')],
         selectedCommit: createMockCommit('abc', 'Test'),
+        selectedCommitFile: 'src/file.ts',
         isLoading: true,
         hasMore: false,
         error: 'Error',
@@ -213,6 +241,7 @@ describe('useCommitsStore', () => {
       const state = useCommitsStore.getState();
       expect(state.commits).toEqual([]);
       expect(state.selectedCommit).toBeNull();
+      expect(state.selectedCommitFile).toBeNull();
       expect(state.isLoading).toBe(false);
       expect(state.hasMore).toBe(true);
       expect(state.error).toBeNull();

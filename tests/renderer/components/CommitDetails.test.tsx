@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { CommitDetails } from '../../../src/renderer/components/commits/CommitDetails';
 import { useCommitsStore } from '../../../src/renderer/stores/commits.store';
-import type { GitCommit } from '../../../src/shared/types/git.types';
+import type { GitCommit, GitCommitFile } from '../../../src/shared/types/git.types';
 
 const createMockCommit = (overrides: Partial<GitCommit> = {}): GitCommit => ({
   hash: 'abc123def456789012345678901234567890abcd',
@@ -24,16 +24,28 @@ const createMockCommit = (overrides: Partial<GitCommit> = {}): GitCommit => ({
   ...overrides,
 });
 
+const createMockFiles = (): GitCommitFile[] => [
+  { path: 'src/app.ts', status: 'M' },
+  { path: 'src/new-file.ts', status: 'A' },
+  { path: 'src/deleted.ts', status: 'D' },
+];
+
 describe('CommitDetails', () => {
   beforeEach(() => {
     useCommitsStore.setState({
       commits: [],
       selectedCommit: null,
+      selectedCommitFile: null,
       isLoading: false,
       hasMore: false,
       error: null,
     });
     vi.clearAllMocks();
+    // Mock getCommitFiles to return empty by default
+    window.electronAPI.git.getCommitFiles = vi.fn().mockResolvedValue({
+      success: true,
+      data: [],
+    });
   });
 
   it('should render nothing when no commit is selected', () => {
@@ -251,5 +263,118 @@ describe('CommitDetails', () => {
     render(<CommitDetails />);
 
     expect(screen.getByText('J')).toBeInTheDocument();
+  });
+
+  it('should display changed files section', async () => {
+    window.electronAPI.git.getCommitFiles = vi.fn().mockResolvedValue({
+      success: true,
+      data: createMockFiles(),
+    });
+
+    useCommitsStore.setState({
+      selectedCommit: createMockCommit(),
+    });
+
+    render(<CommitDetails />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Changed Files (3)')).toBeInTheDocument();
+    });
+  });
+
+  it('should show file status badges', async () => {
+    window.electronAPI.git.getCommitFiles = vi.fn().mockResolvedValue({
+      success: true,
+      data: createMockFiles(),
+    });
+
+    useCommitsStore.setState({
+      selectedCommit: createMockCommit(),
+    });
+
+    render(<CommitDetails />);
+
+    await waitFor(() => {
+      expect(screen.getByText('src/app.ts')).toBeInTheDocument();
+      expect(screen.getByText('A')).toBeInTheDocument(); // Added
+      expect(screen.getByText('M')).toBeInTheDocument(); // Modified
+      expect(screen.getByText('D')).toBeInTheDocument(); // Deleted
+    });
+  });
+
+  it('should show no files message when no files changed', async () => {
+    window.electronAPI.git.getCommitFiles = vi.fn().mockResolvedValue({
+      success: true,
+      data: [],
+    });
+
+    useCommitsStore.setState({
+      selectedCommit: createMockCommit(),
+    });
+
+    render(<CommitDetails />);
+
+    await waitFor(() => {
+      expect(screen.getByText('No files changed')).toBeInTheDocument();
+    });
+  });
+
+  it('should call selectCommitFile when file is clicked', async () => {
+    const mockSelectCommitFile = vi.fn();
+    window.electronAPI.git.getCommitFiles = vi.fn().mockResolvedValue({
+      success: true,
+      data: createMockFiles(),
+    });
+
+    useCommitsStore.setState({
+      selectedCommit: createMockCommit(),
+      selectCommitFile: mockSelectCommitFile,
+    });
+
+    render(<CommitDetails />);
+
+    await waitFor(() => {
+      expect(screen.getByText('src/app.ts')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('src/app.ts'));
+
+    expect(mockSelectCommitFile).toHaveBeenCalledWith('src/app.ts');
+  });
+
+  it('should fetch commit files when commit is selected', async () => {
+    const mockGetCommitFiles = vi.fn().mockResolvedValue({
+      success: true,
+      data: createMockFiles(),
+    });
+    window.electronAPI.git.getCommitFiles = mockGetCommitFiles;
+
+    useCommitsStore.setState({
+      selectedCommit: createMockCommit(),
+    });
+
+    render(<CommitDetails />);
+
+    await waitFor(() => {
+      expect(mockGetCommitFiles).toHaveBeenCalledWith('abc123def456789012345678901234567890abcd');
+    });
+  });
+
+  it('should show renamed file with old path', async () => {
+    window.electronAPI.git.getCommitFiles = vi.fn().mockResolvedValue({
+      success: true,
+      data: [{ path: 'src/new-name.ts', status: 'R', oldPath: 'src/old-name.ts' }],
+    });
+
+    useCommitsStore.setState({
+      selectedCommit: createMockCommit(),
+    });
+
+    render(<CommitDetails />);
+
+    await waitFor(() => {
+      expect(screen.getByText('src/new-name.ts')).toBeInTheDocument();
+      expect(screen.getByText('← src/old-name.ts')).toBeInTheDocument();
+    });
   });
 });

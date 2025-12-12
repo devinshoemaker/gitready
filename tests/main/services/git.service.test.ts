@@ -487,5 +487,151 @@ filename test.ts
       expect(mockGit.checkout).toHaveBeenCalledWith(['--', 'file1.ts', 'file2.ts']);
     });
   });
+
+  describe('getCommitFiles', () => {
+    it('should parse modified files', async () => {
+      mockGit.raw.mockResolvedValue(`M\tsrc/app.ts
+A\tsrc/new-file.ts
+D\tsrc/deleted.ts
+`);
+
+      const result = await gitService.getCommitFiles('abc123');
+
+      expect(result).toHaveLength(3);
+      expect(result[0]).toEqual({ path: 'src/app.ts', status: 'M' });
+      expect(result[1]).toEqual({ path: 'src/new-file.ts', status: 'A' });
+      expect(result[2]).toEqual({ path: 'src/deleted.ts', status: 'D' });
+    });
+
+    it('should parse renamed files with old path', async () => {
+      mockGit.raw.mockResolvedValue(`R100\tsrc/old-name.ts\tsrc/new-name.ts
+`);
+
+      const result = await gitService.getCommitFiles('abc123');
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        path: 'src/new-name.ts',
+        status: 'R',
+        oldPath: 'src/old-name.ts',
+      });
+    });
+
+    it('should parse copied files', async () => {
+      mockGit.raw.mockResolvedValue(`C100\tsrc/original.ts\tsrc/copy.ts
+`);
+
+      const result = await gitService.getCommitFiles('abc123');
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        path: 'src/copy.ts',
+        status: 'C',
+        oldPath: 'src/original.ts',
+      });
+    });
+
+    it('should return empty array on error', async () => {
+      mockGit.raw.mockRejectedValue(new Error('Git error'));
+
+      const result = await gitService.getCommitFiles('abc123');
+
+      expect(result).toEqual([]);
+    });
+
+    it('should call git with correct arguments', async () => {
+      mockGit.raw.mockResolvedValue('');
+
+      await gitService.getCommitFiles('def456');
+
+      expect(mockGit.raw).toHaveBeenCalledWith([
+        'diff-tree',
+        '--no-commit-id',
+        '--name-status',
+        '-r',
+        'def456',
+      ]);
+    });
+  });
+
+  describe('getCommitFileDiff', () => {
+    it('should parse commit file diff', async () => {
+      mockGit.raw.mockResolvedValue(
+        'diff --git a/file.ts b/file.ts\n' +
+        'index abc123..def456 100644\n' +
+        '--- a/file.ts\n' +
+        '+++ b/file.ts\n' +
+        '@@ -1,3 +1,4 @@\n' +
+        ' line 1\n' +
+        '-old line\n' +
+        '+new line\n' +
+        '+another line\n' +
+        ' line 3'
+      );
+
+      const result = await gitService.getCommitFileDiff('abc123', 'file.ts');
+
+      expect(result.file).toBe('file.ts');
+      expect(result.hunks).toHaveLength(1);
+      expect(result.hunks[0].lines).toHaveLength(5);
+    });
+
+    it('should detect new files in commit', async () => {
+      mockGit.raw.mockResolvedValue(`
+diff --git a/new.ts b/new.ts
+new file mode 100644
+index 0000000..abc123
+--- /dev/null
++++ b/new.ts
+@@ -0,0 +1,2 @@
++line 1
++line 2
+`);
+
+      const result = await gitService.getCommitFileDiff('abc123', 'new.ts');
+
+      expect(result.isNew).toBe(true);
+    });
+
+    it('should detect deleted files in commit', async () => {
+      mockGit.raw.mockResolvedValue(`
+diff --git a/old.ts b/old.ts
+deleted file mode 100644
+index abc123..0000000
+--- a/old.ts
++++ /dev/null
+@@ -1,2 +0,0 @@
+-line 1
+-line 2
+`);
+
+      const result = await gitService.getCommitFileDiff('abc123', 'old.ts');
+
+      expect(result.isDeleted).toBe(true);
+    });
+
+    it('should call git show with correct arguments', async () => {
+      mockGit.raw.mockResolvedValue('');
+
+      await gitService.getCommitFileDiff('def456', 'src/app.ts');
+
+      expect(mockGit.raw).toHaveBeenCalledWith([
+        'show',
+        '--format=',
+        'def456',
+        '--',
+        'src/app.ts',
+      ]);
+    });
+
+    it('should return empty diff on error', async () => {
+      mockGit.raw.mockRejectedValue(new Error('Git error'));
+
+      const result = await gitService.getCommitFileDiff('abc123', 'file.ts');
+
+      expect(result.file).toBe('file.ts');
+      expect(result.hunks).toEqual([]);
+    });
+  });
 });
 

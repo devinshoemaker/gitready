@@ -7,6 +7,7 @@ interface CommitsState {
   // State
   commits: GitCommit[];
   selectedCommit: GitCommit | null;
+  selectedCommitFile: string | null;
   isLoading: boolean;
   hasMore: boolean;
   error: string | null;
@@ -15,6 +16,7 @@ interface CommitsState {
   fetchCommits: (options?: GitLogOptions) => Promise<void>;
   loadMoreCommits: () => Promise<void>;
   selectCommit: (commit: GitCommit | null) => void;
+  selectCommitFile: (file: string | null) => void;
   searchCommits: (query: string, searchIn: 'message' | 'author' | 'hash' | 'all') => Promise<void>;
   reset: () => void;
 }
@@ -22,6 +24,7 @@ interface CommitsState {
 export const useCommitsStore = create<CommitsState>((set, get) => ({
   commits: [],
   selectedCommit: null,
+  selectedCommitFile: null,
   isLoading: false,
   hasMore: true,
   error: null,
@@ -71,7 +74,9 @@ export const useCommitsStore = create<CommitsState>((set, get) => ({
     }
   },
 
-  selectCommit: (commit) => set({ selectedCommit: commit }),
+  selectCommit: (commit) => set({ selectedCommit: commit, selectedCommitFile: null }),
+
+  selectCommitFile: (file) => set({ selectedCommitFile: file }),
 
   searchCommits: async (query, searchIn) => {
     set({ isLoading: true, error: null });
@@ -95,6 +100,6 @@ export const useCommitsStore = create<CommitsState>((set, get) => ({
     }
   },
 
-  reset: () => set({ commits: [], selectedCommit: null, isLoading: false, hasMore: true, error: null }),
+  reset: () => set({ commits: [], selectedCommit: null, selectedCommitFile: null, isLoading: false, hasMore: true, error: null }),
 }));
 
