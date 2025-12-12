@@ -82,6 +82,15 @@ export function CommitNode({ node, isSelected, onSelect }: CommitNodeProps) {
       role="button"
       tabIndex={0}
     >
+      {/* Clickable row background (transparent but captures all click events) */}
+      <rect
+        x={0}
+        y={y - 20}
+        width="100%"
+        height={GRAPH_CONFIG.COMMIT_HEIGHT}
+        fill="transparent"
+      />
+
       {/* Selection highlight */}
       {isSelected && (
         <rect
