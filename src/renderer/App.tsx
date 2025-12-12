@@ -9,6 +9,7 @@ import { MainPanel } from './components/layout/MainPanel';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { Notification } from './components/Notification';
 import { SearchPanel } from './components/search/SearchPanel';
+import { CreateBranchModal } from './components/branches/CreateBranchModal';
 
 function App() {
   const repository = useRepositoryStore((state) => state.repository);
@@ -17,6 +18,7 @@ function App() {
   const fetchBranches = useBranchesStore((state) => state.fetchBranches);
   const fetchStashes = useBranchesStore((state) => state.fetchStashes);
   const isSearchOpen = useUIStore((state) => state.isSearchOpen);
+  const isCreateBranchOpen = useUIStore((state) => state.isCreateBranchOpen);
   const notification = useUIStore((state) => state.notification);
 
   // Set up repository change listener
@@ -89,6 +91,9 @@ function App() {
 
       {/* Search overlay */}
       {isSearchOpen && <SearchPanel />}
+
+      {/* Create branch modal */}
+      {isCreateBranchOpen && <CreateBranchModal />}
 
       {/* Notification */}
       {notification && <Notification />}
