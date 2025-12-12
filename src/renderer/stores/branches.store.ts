@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { GitBranch, GitStash, GitMergeResult } from '../../shared/types/git.types';
+import type { GitBranch, GitStash, GitMergeResult, GitRebaseResult } from '../../shared/types/git.types';
 
 interface BranchesState {
   // State
@@ -17,6 +17,7 @@ interface BranchesState {
   deleteBranch: (name: string, force?: boolean) => Promise<void>;
   renameBranch: (oldName: string, newName: string) => Promise<void>;
   merge: (branch: string) => Promise<GitMergeResult>;
+  rebase: (branch: string) => Promise<GitRebaseResult>;
   stash: (message?: string, includeUntracked?: boolean) => Promise<void>;
   stashApply: (index: number) => Promise<void>;
   stashPop: (index: number) => Promise<void>;
@@ -127,6 +128,23 @@ export const useBranchesStore = create<BranchesState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await window.electronAPI.git.merge(branch);
+      set({ isLoading: false });
+      if (response.success) {
+        return response.data;
+      } else {
+        set({ error: response.error });
+        return { success: false, conflicts: [], message: response.error };
+      }
+    } catch (error) {
+      set({ error: (error as Error).message, isLoading: false });
+      return { success: false, conflicts: [], message: (error as Error).message };
+    }
+  },
+
+  rebase: async (branch: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await window.electronAPI.git.rebase(branch);
       set({ isLoading: false });
       if (response.success) {
         return response.data;

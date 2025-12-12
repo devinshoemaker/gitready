@@ -135,6 +135,12 @@ export interface GitMergeResult {
   message?: string;
 }
 
+export interface GitRebaseResult {
+  success: boolean;
+  conflicts: string[];
+  message?: string;
+}
+
 export interface GitConflict {
   file: string;
   ourContent: string;

@@ -14,6 +14,7 @@ import type {
   GitBlameLine,
   GitFileHistoryEntry,
   GitMergeResult,
+  GitRebaseResult,
   GitCommitFile,
   RepositoryInfo,
 } from '../../shared/types/git.types';
@@ -246,6 +247,20 @@ export class GitService {
   async merge(branch: string): Promise<GitMergeResult> {
     try {
       await this.git.merge([branch]);
+      return { success: true, conflicts: [] };
+    } catch (error) {
+      const status = await this.getStatus();
+      return {
+        success: false,
+        conflicts: status.conflicted.map((f) => f.path),
+        message: (error as Error).message,
+      };
+    }
+  }
+
+  async rebase(branch: string): Promise<GitRebaseResult> {
+    try {
+      await this.git.rebase([branch]);
       return { success: true, conflicts: [] };
     } catch (error) {
       const status = await this.getStatus();

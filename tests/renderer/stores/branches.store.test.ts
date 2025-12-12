@@ -179,6 +179,54 @@ describe('useBranchesStore', () => {
     });
   });
 
+  describe('rebase', () => {
+    it('should return rebase result on success', async () => {
+      window.electronAPI.git.rebase = vi.fn().mockResolvedValue({
+        success: true,
+        data: { success: true, conflicts: [] },
+      });
+
+      const result = await useBranchesStore.getState().rebase('main');
+
+      expect(result).toEqual({ success: true, conflicts: [] });
+      expect(window.electronAPI.git.rebase).toHaveBeenCalledWith('main');
+    });
+
+    it('should return conflicts on rebase failure', async () => {
+      window.electronAPI.git.rebase = vi.fn().mockResolvedValue({
+        success: true,
+        data: { success: false, conflicts: ['file.ts'], message: 'Rebase conflict' },
+      });
+
+      const result = await useBranchesStore.getState().rebase('main');
+
+      expect(result.success).toBe(false);
+      expect(result.conflicts).toContain('file.ts');
+    });
+
+    it('should set error when IPC call fails', async () => {
+      window.electronAPI.git.rebase = vi.fn().mockResolvedValue({
+        success: false,
+        error: 'Rebase failed',
+      });
+
+      const result = await useBranchesStore.getState().rebase('main');
+
+      expect(result.success).toBe(false);
+      expect(useBranchesStore.getState().error).toBe('Rebase failed');
+    });
+
+    it('should handle exceptions gracefully', async () => {
+      window.electronAPI.git.rebase = vi.fn().mockRejectedValue(new Error('Network error'));
+
+      const result = await useBranchesStore.getState().rebase('main');
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('Network error');
+      expect(useBranchesStore.getState().error).toBe('Network error');
+    });
+  });
+
   describe('stash operations', () => {
     it('should create stash and refresh', async () => {
       window.electronAPI.git.stash = vi.fn().mockResolvedValue({ success: true });

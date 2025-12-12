@@ -8,7 +8,7 @@ interface BranchItemProps {
 }
 
 export function BranchItem({ branch }: BranchItemProps) {
-  const { checkout, deleteBranch, merge } = useBranchesStore();
+  const { checkout, deleteBranch, merge, rebase } = useBranchesStore();
   const { showNotification } = useUIStore();
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [contextMenuPos, setContextMenuPos] = useState({ x: 0, y: 0 });
@@ -50,6 +50,22 @@ export function BranchItem({ branch }: BranchItemProps) {
         showNotification('error', `Merge conflicts in ${result.conflicts.length} files`);
       } else {
         showNotification('error', result.message || 'Merge failed');
+      }
+    } catch (error) {
+      showNotification('error', (error as Error).message);
+    }
+  };
+
+  const handleRebase = async () => {
+    setShowContextMenu(false);
+    try {
+      const result = await rebase(branch.name);
+      if (result.success) {
+        showNotification('success', `Rebased onto ${branch.name}`);
+      } else if (result.conflicts.length > 0) {
+        showNotification('error', `Rebase conflicts in ${result.conflicts.length} files`);
+      } else {
+        showNotification('error', result.message || 'Rebase failed');
       }
     } catch (error) {
       showNotification('error', (error as Error).message);
@@ -136,6 +152,14 @@ export function BranchItem({ branch }: BranchItemProps) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
               </svg>
               Merge into current
+            </button>
+          )}
+          {!branch.current && (
+            <button onClick={handleRebase} className="context-menu-item w-full text-left">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Rebase current onto
             </button>
           )}
           {!branch.current && !branch.isRemote && (

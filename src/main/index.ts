@@ -200,6 +200,16 @@ function setupIpcHandlers() {
     }
   });
 
+  ipcMain.handle(IPC_CHANNELS.GIT_REBASE, async (_, branch: string) => {
+    try {
+      if (!gitService) throw new Error('No repository opened');
+      const result = await gitService.rebase(branch);
+      return { success: true, data: result };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
   ipcMain.handle(IPC_CHANNELS.GIT_PUSH, async (_, options?: GitPushOptions) => {
     try {
       if (!gitService) throw new Error('No repository opened');

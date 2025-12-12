@@ -7,6 +7,7 @@ import type {
   GitBlame,
   GitFileHistoryEntry,
   GitMergeResult,
+  GitRebaseResult,
   GitCommitFile,
   RepositoryInfo,
 } from './git.types';
@@ -116,6 +117,7 @@ export interface ElectronAPI {
     deleteBranch: (name: string, force?: boolean) => Promise<IPCResponse<void>>;
     renameBranch: (oldName: string, newName: string) => Promise<IPCResponse<void>>;
     merge: (branch: string) => Promise<IPCResponse<GitMergeResult>>;
+    rebase: (branch: string) => Promise<IPCResponse<GitRebaseResult>>;
     push: (options?: GitPushOptions) => Promise<IPCResponse<void>>;
     pull: (options?: GitPullOptions) => Promise<IPCResponse<void>>;
     fetch: (remote?: string) => Promise<IPCResponse<void>>;

@@ -129,6 +129,7 @@ describe('BranchItem', () => {
 
     expect(screen.getByText('Checkout')).toBeInTheDocument();
     expect(screen.getByText('Merge into current')).toBeInTheDocument();
+    expect(screen.getByText('Rebase current onto')).toBeInTheDocument();
     expect(screen.getByText('Delete')).toBeInTheDocument();
   });
 
@@ -174,6 +175,44 @@ describe('BranchItem', () => {
     await waitFor(() => {
       expect(window.electronAPI.git.merge).toHaveBeenCalledWith('feature');
     });
+  });
+
+  it('should rebase from context menu', async () => {
+    window.electronAPI.git.rebase = vi.fn().mockResolvedValue({
+      success: true,
+      data: { success: true, conflicts: [] },
+    });
+
+    const branch = createMockBranch('main');
+
+    render(<BranchItem branch={branch} />);
+
+    fireEvent.contextMenu(screen.getByText('main'));
+    fireEvent.click(screen.getByText('Rebase current onto'));
+
+    await waitFor(() => {
+      expect(window.electronAPI.git.rebase).toHaveBeenCalledWith('main');
+    });
+  });
+
+  it('should show rebase option for remote branches', () => {
+    const branch = createMockBranch('origin/main', false, true);
+
+    render(<BranchItem branch={branch} />);
+
+    fireEvent.contextMenu(screen.getByText('main'));
+
+    expect(screen.getByText('Rebase current onto')).toBeInTheDocument();
+  });
+
+  it('should not show rebase option for current branch', () => {
+    const branch = createMockBranch('main', true);
+
+    render(<BranchItem branch={branch} />);
+
+    fireEvent.contextMenu(screen.getByText('main'));
+
+    expect(screen.queryByText('Rebase current onto')).not.toBeInTheDocument();
   });
 
   it('should delete from context menu with confirmation', async () => {

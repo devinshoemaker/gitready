@@ -15,6 +15,7 @@ const mockGit = {
   checkoutBranch: vi.fn(),
   checkoutLocalBranch: vi.fn(),
   merge: vi.fn(),
+  rebase: vi.fn(),
   push: vi.fn(),
   pull: vi.fn(),
   fetch: vi.fn(),
@@ -283,6 +284,40 @@ describe('GitService', () => {
 
       expect(result.success).toBe(false);
       expect(result.conflicts).toContain('conflict.ts');
+    });
+  });
+
+  describe('rebase', () => {
+    it('should return success for clean rebase', async () => {
+      mockGit.rebase.mockResolvedValue(undefined);
+
+      const result = await gitService.rebase('main');
+
+      expect(result.success).toBe(true);
+      expect(result.conflicts).toHaveLength(0);
+      expect(mockGit.rebase).toHaveBeenCalledWith(['main']);
+    });
+
+    it('should return conflicts on rebase failure', async () => {
+      mockGit.rebase.mockRejectedValue(new Error('Rebase conflict'));
+      mockGit.status.mockResolvedValue({
+        current: 'feature',
+        tracking: null,
+        ahead: 0,
+        behind: 0,
+        files: [{ path: 'conflict.ts', index: 'U', working_dir: 'U' }],
+        created: [],
+        deleted: [],
+        modified: [],
+        renamed: [],
+        isClean: () => false,
+      });
+
+      const result = await gitService.rebase('main');
+
+      expect(result.success).toBe(false);
+      expect(result.conflicts).toContain('conflict.ts');
+      expect(result.message).toBe('Rebase conflict');
     });
   });
 

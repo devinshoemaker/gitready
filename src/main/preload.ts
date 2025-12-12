@@ -28,6 +28,7 @@ const electronAPI: ElectronAPI = {
     renameBranch: (oldName: string, newName: string) =>
       ipcRenderer.invoke(IPC_CHANNELS.GIT_RENAME_BRANCH, oldName, newName),
     merge: (branch: string) => ipcRenderer.invoke(IPC_CHANNELS.GIT_MERGE, branch),
+    rebase: (branch: string) => ipcRenderer.invoke(IPC_CHANNELS.GIT_REBASE, branch),
     push: (options?: GitPushOptions) => ipcRenderer.invoke(IPC_CHANNELS.GIT_PUSH, options),
     pull: (options?: GitPullOptions) => ipcRenderer.invoke(IPC_CHANNELS.GIT_PULL, options),
     fetch: (remote?: string) => ipcRenderer.invoke(IPC_CHANNELS.GIT_FETCH, remote),
